@@ -19,8 +19,17 @@ if the default image is older.
 
 ## Custom domain
 
-Add `www.hoyodex.com` under the Worker's **Domains & Routes**, and redirect the
-apex `hoyodex.com` to it with a Bulk Redirect or a Redirect Rule.
+The site is served from the apex domain, `hoyodex.com`. There is no `www`
+hostname — `site` in `astro.config.mjs`, the sitemap, `robots.txt` and
+`security.txt` all assume the apex, so adding one later means changing those
+together or you get split canonical URLs.
+
+Add `hoyodex.com` under the Worker's **Domains & Routes**. Cloudflare handles
+the apex with CNAME flattening, so no ALIAS record is needed.
+
+Optionally catch `www` anyway — people type it out of habit. A Redirect Rule
+with `http.host eq "www.hoyodex.com"` → `https://hoyodex.com${uri}` (301) is
+enough, and costs nothing if you never point `www` at anything.
 
 ## One thing to know about content freshness
 

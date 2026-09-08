@@ -9,7 +9,7 @@
 [![Astro](https://img.shields.io/badge/Astro-7-fbbf24.svg?style=flat-square)](https://astro.build)
 [![Deploy](https://img.shields.io/badge/Cloudflare-Workers-f97316.svg?style=flat-square)](https://workers.cloudflare.com)
 
-[www.hoyodex.com](https://www.hoyodex.com) · [Wiki](https://hoyodex.miraheze.org) · [Contributing](CONTRIBUTING.md) · [Deploying](CLOUDFLARE.md)
+[hoyodex.com](https://hoyodex.com) · [Wiki](https://hoyodex.miraheze.org) · [Contributing](CONTRIBUTING.md) · [Deploying](CLOUDFLARE.md)
 
 </div>
 

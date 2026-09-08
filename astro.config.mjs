@@ -6,7 +6,7 @@ import sitemap from '@astrojs/sitemap';
 import tailwind from '@tailwindcss/vite';
 
 export default defineConfig({
-  site: 'https://www.hoyodex.com',
+  site: 'https://hoyodex.com',
   adapter: cloudflare({ imageService: 'compile' }),
   integrations: [react(), sitemap()],
   vite: { plugins: [tailwind()] },

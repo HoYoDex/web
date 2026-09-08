@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.hoyodex.com/sitemap-index.xml
+Sitemap: https://hoyodex.com/sitemap-index.xml

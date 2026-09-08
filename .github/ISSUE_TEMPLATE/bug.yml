@@ -10,7 +10,7 @@ body:
     id: url
     attributes:
       label: Page
-      placeholder: https://www.hoyodex.com/wiki/...
+      placeholder: https://hoyodex.com/wiki/...
     validations: { required: true }
   - type: textarea
     id: what

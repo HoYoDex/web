@@ -9,7 +9,7 @@
     "type": "git",
     "url": "https://github.com/HoYoDex/web.git"
   },
-  "homepage": "https://www.hoyodex.com",
+  "homepage": "https://hoyodex.com",
   "engines": {
     "node": ">=22.12.0"
   },
