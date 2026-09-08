@@ -38,36 +38,8 @@ const FEATURED_CATEGORIES = [
 ];
 ---
 
-<Base title={page.data.displayTitle} description={`${page.data.displayTitle} — HoYoDex`} sourceUrl={page.data.sourceUrl} wide={true}>
-  <nav class="mb-4 text-sm text-zinc-500">
-    <a href="/" class="hover:text-astral-400">Home</a> <span class="px-1">/</span>
-    <a href="/wiki" class="hover:text-astral-400">Wiki</a>
-    {game && (<><span class="px-1">/</span><a href={`/games/${game.slug}`} class="hover:text-astral-400" style={`color:${game.accent}`}>{game.name}</a></>)}
-  </nav>
-
+<Base title={page.data.displayTitle} description={`${page.data.displayTitle} — HoYoDex`} sourceUrl={page.data.sourceUrl} wide={true} game={game}>
   <div class="flex flex-col gap-8 xl:flex-row xl:items-start">
-    {/* LEFT SIDEBAR: Navigation */}
-    <aside class="hidden w-64 shrink-0 xl:block">
-      <div class="sticky top-24 rounded-xl border border-void-700 bg-void-850/50 p-5 backdrop-blur-md">
-        <h2 class="mb-3 font-display text-lg font-bold" style={`color:${game?.accent ?? '#fff'}`}>{game?.name ?? 'HoYoDex'}</h2>
-        <ul class="space-y-1.5 text-sm">
-          {FEATURED_CATEGORIES.map(cat => (
-            <li>
-              <a href={`/search?q=${encodeURIComponent(cat)}&game=${game?.slug}`} class="block rounded-md px-3 py-2 text-zinc-400 transition-colors hover:bg-void-800 hover:text-zinc-100">
-                {cat}
-              </a>
-            </li>
-          ))}
-        </ul>
-        <div class="mt-4 border-t border-void-700/60 pt-4">
-          <a href={`/search?q=&game=${game?.slug}`} class="flex items-center gap-2 rounded-md bg-void-800 px-3 py-2 text-sm text-zinc-300 transition-colors hover:bg-void-700">
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            Search Wiki
-          </a>
-        </div>
-      </div>
-    </aside>
-
     {/* MAIN CONTENT */}
     <article class="min-w-0 flex-1 rounded-2xl border border-void-700 bg-void-900/40 p-6 backdrop-blur-sm sm:p-10 shadow-2xl shadow-void-950/50">
       <h1 class="font-display text-4xl font-bold tracking-tight sm:text-5xl">{page.data.displayTitle}</h1>

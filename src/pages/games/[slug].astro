@@ -44,23 +44,7 @@ for (const p of pages) {
 // Fallback if no featured categories exist (like for smaller wikis)
 const showFallback = categoryGroups.size === 0 && pages.length > 0;
 ---
-<Base title={game.name} description={game.blurb}>
-  <div class="mb-12 border-b border-void-700/60 pb-8 text-center sm:text-left">
-    <h1 class="font-display text-4xl font-bold tracking-tight sm:text-5xl" style={`color:${game.accent}`}>{game.name}</h1>
-    <p class="mt-3 text-lg text-zinc-400 max-w-2xl">{game.blurb}</p>
-    <div class="mt-4 flex flex-wrap items-center justify-center gap-4 sm:justify-start">
-      <span class="rounded-full border border-void-600 bg-void-800/60 px-3 py-1 text-xs font-medium text-zinc-300">
-        Released {game.released}
-      </span>
-      <span class="rounded-full border border-void-600 bg-void-800/60 px-3 py-1 text-xs font-medium text-zinc-300">
-        {pages.length.toLocaleString()} Indexed Pages
-      </span>
-      <a href={`/search?q=&game=${game.slug}`} class="text-sm font-medium transition-colors hover:text-zinc-100" style={`color:${game.accent}`}>
-        Search all pages →
-      </a>
-    </div>
-  </div>
-
+<Base title={game.name} description={game.blurb} wide={true} game={game}>
   {pages.length === 0 ? (
     <p class="mt-10 rounded-xl border border-dashed border-void-700 p-12 text-center text-zinc-500">
       No pages indexed for this game yet.
@@ -73,7 +57,7 @@ const showFallback = categoryGroups.size === 0 && pages.length > 0;
       ))}
     </div>
   ) : (
-    <div class="space-y-16">
+    <div class="space-y-16 mt-4">
       {FEATURED_CATEGORIES.filter(c => categoryGroups.has(c)).map(cat => {
         const groupPages = categoryGroups.get(cat)!;
         return (
