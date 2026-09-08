@@ -1,0 +1,12 @@
+# Normalise line endings so Windows contributors don't churn whole files.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff  binary
+*.woff2 binary
+
+# Keep generated files out of diffs and language stats.
+pnpm-lock.yaml  -diff linguist-generated
+*.svg           linguist-detectable=false

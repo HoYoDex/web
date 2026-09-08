@@ -1,0 +1,7 @@
+dist/
+.astro/
+.wrangler/
+node_modules/
+pnpm-lock.yaml
+public/
+CHANGELOG.md

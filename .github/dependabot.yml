@@ -1,0 +1,14 @@
+# Dependency updates only — this is not CI. Cloudflare still builds and deploys
+# from git; Dependabot just opens PRs when something needs upgrading.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    groups:
+      # One PR for the routine stuff rather than five.
+      minor-and-patch:
+        update-types: [minor, patch]
+    labels: [dependencies]

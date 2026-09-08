@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Security headers on every response (CSP, HSTS, frame-ancestors, permissions
+  policy) and an RFC 9116 `security.txt`.
 - Initial site: 2,085 static routes generated from the HoYoverse Universe Index.
 - MediaWiki Action API client with concurrency limits, `maxlag` handling and
   exponential backoff.

@@ -111,6 +111,8 @@ for build settings and a note on keeping content fresh.
 | [SUPPORT.md](SUPPORT.md) | Where to ask for help |
 | [SECURITY.md](SECURITY.md) | Reporting vulnerabilities |
 | [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Expected behaviour |
+| [ROADMAP.md](ROADMAP.md) | What is planned, and what deliberately is not |
+| [PRIVACY.md](PRIVACY.md) | What the site collects (nothing) and who else sees traffic |
 | [CHANGELOG.md](CHANGELOG.md) | What changed |
 
 ## Licensing
