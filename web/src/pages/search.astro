@@ -1,0 +1,14 @@
+---
+import Base from '../layouts/Base.astro';
+import Search from '../components/Search.tsx';
+import { GAMES } from '../lib/games';
+
+const games = GAMES.map((g) => ({ slug: g.slug, name: g.short, accent: g.accent }));
+---
+<Base title="Search" description="Search every page in the HoYoDex index.">
+  <h1 class="mb-6 font-display text-3xl font-bold">Search</h1>
+  <Search client:load games={games} />
+  <noscript>
+    <p class="mt-6 text-zinc-400">Search needs JavaScript. You can still <a href="/wiki" class="text-astral-400 underline">browse the full A–Z index</a>.</p>
+  </noscript>
+</Base>

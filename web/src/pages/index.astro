@@ -1,0 +1,112 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+import { GAMES, gameForCategories } from '../lib/games';
+
+const pages = await getCollection('wiki');
+
+const counts = new Map<string, number>();
+for (const p of pages) {
+  const g = gameForCategories(p.data.categories, p.data.title);
+  if (g) counts.set(g.slug, (counts.get(g.slug) ?? 0) + 1);
+}
+
+const recent = [...pages]
+  .sort((a, b) => b.data.updated.localeCompare(a.data.updated))
+  .slice(0, 8);
+
+const categoryCount = new Set(pages.flatMap((p) => p.data.categories)).size;
+const stats = [
+  { label: 'Indexed pages', value: pages.length.toLocaleString() },
+  { label: 'Games covered', value: String(GAMES.length) },
+  { label: 'Categories', value: categoryCount.toLocaleString() },
+  { label: 'Cost to use', value: 'Free' },
+];
+
+const ranked = [...GAMES].sort((a, b) => (counts.get(b.slug) ?? 0) - (counts.get(a.slug) ?? 0));
+---
+
+<Base title="HoYoDex">
+  <section class="relative py-16 text-center sm:py-24">
+    <div class="mx-auto mb-7 w-fit rounded-full border border-void-600 bg-void-900/60 px-4 py-1.5 text-xs font-medium tracking-wide text-zinc-400">
+      <span class="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 align-middle"></span>
+      Open source · AGPL-3.0 · Community run
+    </div>
+
+    <h1 class="font-display text-5xl font-bold leading-[1.05] tracking-tight text-zinc-50 sm:text-7xl">
+      Every HoYoverse game,<br />
+      <span class="bg-gradient-to-r from-astral-400 via-astral-300 to-nova-400 bg-clip-text text-transparent">one open index.</span>
+    </h1>
+
+    <p class="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-zinc-400">
+      Characters, lore, mechanics and data across Genshin Impact, Honkai: Star Rail,
+      Zenless Zone Zero and more — no ads, no trackers, no paywalls. Built in the open,
+      forever free.
+    </p>
+
+    <div class="mt-9 flex flex-wrap justify-center gap-3">
+      <a href="/search" class="rounded-lg bg-astral-500 px-6 py-3 font-semibold text-void-950 shadow-lg shadow-astral-500/20 transition-all hover:-translate-y-0.5 hover:bg-astral-400">
+        Search {pages.length.toLocaleString()} pages
+      </a>
+      <a href="/games" class="rounded-lg border border-void-600 bg-void-900/60 px-6 py-3 font-semibold text-zinc-200 transition-all hover:-translate-y-0.5 hover:border-astral-500/60">
+        Browse games
+      </a>
+    </div>
+
+    <dl class="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-px overflow-hidden rounded-xl border border-void-700 bg-void-700 sm:grid-cols-4">
+      {stats.map((s) => (
+        <div class="bg-void-900/80 px-4 py-5">
+          <dt class="text-xs uppercase tracking-wider text-zinc-500">{s.label}</dt>
+          <dd class="mt-1 font-display text-2xl font-bold text-zinc-100">{s.value}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+
+  <section class="py-12">
+    <div class="mb-6 flex items-baseline justify-between">
+      <h2 class="font-display text-2xl font-bold text-zinc-100">Games</h2>
+      <a href="/games" class="text-sm text-astral-400 hover:text-astral-300">All games →</a>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {ranked.map((g) => (
+        <a href={`/games/${g.slug}`} class="card group p-5" style={`--accent:${g.accent}`}>
+          <div class="mb-3 flex items-center gap-2.5">
+            <span class="h-2.5 w-2.5 rounded-full" style={`background:${g.accent};box-shadow:0 0 12px ${g.accent}`}></span>
+            <h3 class="font-display text-lg font-semibold text-zinc-100 transition-colors" style="--tw-text-opacity:1">{g.name}</h3>
+          </div>
+          <p class="text-sm leading-relaxed text-zinc-400">{g.blurb}</p>
+          <div class="mt-4 flex items-center justify-between border-t border-void-700 pt-3 text-xs text-zinc-500">
+            <span>{(counts.get(g.slug) ?? 0).toLocaleString()} pages</span>
+            <span class="transition-transform group-hover:translate-x-0.5">→</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="py-12">
+    <h2 class="mb-6 font-display text-2xl font-bold text-zinc-100">Recently updated</h2>
+    <div class="grid gap-3 sm:grid-cols-2">
+      {recent.map((p) => (
+        <a href={`/wiki/${p.id}`} class="card flex items-center gap-3 px-4 py-3">
+          <span class="min-w-0 flex-1 truncate text-sm font-medium text-zinc-200">{p.data.displayTitle}</span>
+          <time class="shrink-0 font-mono text-xs text-zinc-600">{p.data.updated.slice(0, 10)}</time>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="card mt-6 p-8 text-center" style="--accent:#a78bfa">
+    <h2 class="font-display text-2xl font-bold text-zinc-100">Built by the community</h2>
+    <p class="mx-auto mt-3 max-w-xl text-zinc-400">
+      HoYoDex is free software. The site, the data pipeline and the wiki are all
+      open — fix a typo, add a page, or reshape the whole thing.
+    </p>
+    <div class="mt-6 flex flex-wrap justify-center gap-3 text-sm">
+      <a href="https://github.com/HoYoDex/web" rel="noopener" class="rounded-lg border border-void-600 px-5 py-2.5 font-medium text-zinc-200 transition-colors hover:border-nova-500 hover:text-nova-400">Contribute on GitHub</a>
+      <a href="https://hoyodex.miraheze.org" rel="noopener" class="rounded-lg border border-void-600 px-5 py-2.5 font-medium text-zinc-200 transition-colors hover:border-nova-500 hover:text-nova-400">Edit the wiki</a>
+    </div>
+  </section>
+</Base>

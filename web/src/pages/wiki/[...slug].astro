@@ -1,0 +1,59 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection, render } from 'astro:content';
+import { gameForCategories } from '../../lib/games';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('wiki');
+  return pages.map((page) => ({ params: { slug: page.id }, props: { page } }));
+}
+
+const { page } = Astro.props;
+const { Content } = await render(page);
+const game = gameForCategories(page.data.categories, page.data.title);
+const toc = page.data.sections.filter((s) => s.level <= 3);
+---
+
+<Base title={page.data.displayTitle} description={`${page.data.displayTitle} — HoYoDex`} sourceUrl={page.data.sourceUrl}>
+  <nav class="mb-4 text-sm text-zinc-500">
+    <a href="/" class="hover:text-astral-400">Home</a> <span class="px-1">/</span>
+    <a href="/wiki" class="hover:text-astral-400">Wiki</a>
+    {game && (<><span class="px-1">/</span><a href={`/games/${game.slug}`} class="hover:text-astral-400">{game.name}</a></>)}
+  </nav>
+
+  <div class="lg:flex lg:gap-10">
+    {toc.length > 2 && (
+      <aside class="mb-6 shrink-0 lg:order-2 lg:mb-0 lg:w-56">
+        <div class="lg:sticky lg:top-20">
+          <h2 class="mb-2 font-display text-xs font-semibold uppercase tracking-wider text-zinc-500">Contents</h2>
+          <ul class="space-y-1 border-l border-void-700 text-sm">
+            {toc.map((s) => (
+              <li>
+                <a href={`#${s.anchor}`}
+                   class="block border-l-2 border-transparent py-0.5 text-zinc-400 transition-colors hover:border-astral-400 hover:text-astral-400"
+                   style={`padding-left:${(s.level - 1) * 0.6 + 0.6}rem;margin-left:-1px`}>{s.line}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
+    )}
+
+    <article class="min-w-0 flex-1 lg:order-1">
+      <h1 class="font-display text-3xl font-bold sm:text-4xl">{page.data.displayTitle}</h1>
+      <p class="mt-2 text-sm text-zinc-500">Last updated {page.data.updated.slice(0, 10)}</p>
+      <div class="wiki-body mt-6"><Content /></div>
+
+      {page.data.categories.length > 0 && (
+        <footer class="mt-10 border-t border-void-700 pt-5">
+          <h2 class="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Categories</h2>
+          <ul class="flex flex-wrap gap-2">
+            {page.data.categories.map((c) => (
+              <li class="rounded-full border border-void-600 bg-void-800/60 px-3 py-1 text-xs text-zinc-400">{c}</li>
+            ))}
+          </ul>
+        </footer>
+      )}
+    </article>
+  </div>
+</Base>

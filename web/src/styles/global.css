@@ -1,0 +1,202 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Surfaces — a cool near-black with deliberate steps, not arbitrary greys. */
+  --color-void-950: #08080d;
+  --color-void-900: #0c0c14;
+  --color-void-850: #10101a;
+  --color-void-800: #15151f;
+  --color-void-700: #1d1d2b;
+  --color-void-600: #2a2a3c;
+  --color-void-500: #3b3b52;
+
+  --color-astral-300: #bae6fd;
+  --color-astral-400: #7dd3fc;
+  --color-astral-500: #38bdf8;
+  --color-astral-600: #0ea5e9;
+  --color-nova-400: #c4b5fd;
+  --color-nova-500: #a78bfa;
+  --color-ember-400: #fbbf24;
+
+  --font-display: 'Rajdhani', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 0.875rem;
+}
+
+:root { color-scheme: dark; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--color-void-950);
+  color: #d4d4d8;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+::selection { background: var(--color-astral-500); color: var(--color-void-950); }
+
+/* Ambient field: a faint astral wash + grid, fixed so it reads as depth
+   rather than as a element that scrolls with the content. */
+.field::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 40rem at 15% -10%, color-mix(in oklab, var(--color-astral-500) 13%, transparent), transparent 65%),
+    radial-gradient(50rem 35rem at 90% 0%, color-mix(in oklab, var(--color-nova-500) 11%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--color-void-900), var(--color-void-950) 40%);
+}
+.field::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .5;
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--color-void-600) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-void-600) 45%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 100% 60% at 50% 0%, #000 20%, transparent 75%);
+}
+
+/* Card: one hairline, one lift, one accent glow. Used everywhere for consistency. */
+.card {
+  position: relative;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-void-700);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-void-800) 80%, transparent), color-mix(in oklab, var(--color-void-900) 85%, transparent));
+  transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--accent, var(--color-astral-500)) 55%, transparent);
+  box-shadow: 0 8px 30px -12px color-mix(in oklab, var(--accent, var(--color-astral-500)) 40%, transparent);
+}
+
+.rule { height: 1px; background: linear-gradient(90deg, var(--color-void-600), transparent); }
+
+/* ── Rendered MediaWiki HTML ─────────────────────────────────────────────
+   Upstream markup is arbitrary, so this is defensive: everything wide is
+   forced to scroll inside its own box rather than stretching the page. */
+.wiki-body { line-height: 1.75; color: #cdcdd6; overflow-wrap: break-word; }
+.wiki-body h2 {
+  font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: #f4f4f5;
+  margin: 2.25rem 0 .75rem; padding-bottom: .4rem; border-bottom: 1px solid var(--color-void-700);
+  scroll-margin-top: 5rem;
+}
+.wiki-body h3 { font-family: var(--font-display); font-size: 1.2rem; font-weight: 600; color: #e4e4e7; margin: 1.5rem 0 .5rem; scroll-margin-top: 5rem; }
+.wiki-body h4 { font-weight: 600; color: #e4e4e7; margin: 1.15rem 0 .4rem; }
+.wiki-body p { margin: .85rem 0; }
+.wiki-body a { color: var(--color-astral-400); text-decoration: none; border-bottom: 1px solid color-mix(in oklab, var(--color-astral-400) 35%, transparent); }
+.wiki-body a:hover { color: var(--color-astral-300); border-bottom-color: currentColor; }
+.wiki-body a.new { color: #fb7185; border-bottom-color: color-mix(in oklab, #fb7185 35%, transparent); }
+.wiki-body ul { list-style: disc; padding-left: 1.4rem; margin: .85rem 0; }
+.wiki-body ol { list-style: decimal; padding-left: 1.4rem; margin: .85rem 0; }
+.wiki-body li { margin: .3rem 0; }
+.wiki-body blockquote { border-left: 3px solid var(--color-astral-600); padding-left: 1rem; margin: 1rem 0; color: #a1a1aa; font-style: italic; }
+.wiki-body code { background: var(--color-void-800); border: 1px solid var(--color-void-700); border-radius: .3rem; padding: .1rem .35rem; font-size: .875em; }
+.wiki-body pre { background: var(--color-void-900); border: 1px solid var(--color-void-700); border-radius: .5rem; padding: 1rem; overflow-x: auto; }
+.wiki-body img { border-radius: .5rem; height: auto; }
+.wiki-body figure, .wiki-body .thumb { margin: 1.25rem 0; }
+.wiki-body .thumbcaption, .wiki-body figcaption { margin-top: .4rem; font-size: .8rem; color: #71717a; }
+
+.wiki-body table {
+  display: block; max-width: 100%; overflow-x: auto;
+  border-collapse: collapse; margin: 1.25rem 0; font-size: .875rem;
+  border: 1px solid var(--color-void-700); border-radius: .5rem;
+}
+.wiki-body th, .wiki-body td { border: 1px solid var(--color-void-700); padding: .5rem .75rem; text-align: left; vertical-align: top; }
+.wiki-body th { background: var(--color-void-800); color: #e4e4e7; font-weight: 600; }
+.wiki-body tr:nth-child(even) td { background: color-mix(in oklab, var(--color-void-800) 40%, transparent); }
+
+/* ── PortableInfobox (the `pi-*` extension this wiki uses) ──────────────
+   Full-width card on mobile, floated sidebar on desktop. */
+.wiki-body .portable-infobox {
+  float: none;
+  width: 100%;
+  margin: 0 0 1.5rem;
+  background: var(--color-void-850);
+  border: 1px solid var(--color-void-700);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  font-size: .85rem;
+}
+@media (min-width: 1024px) {
+  .wiki-body .portable-infobox { float: right; width: 21rem; margin: .25rem 0 1.25rem 1.75rem; }
+}
+
+.wiki-body .pi-title,
+.wiki-body .pi-header {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f4f4f5;
+  text-align: center;
+  padding: .6rem .75rem;
+  margin: 0;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-astral-500) 16%, transparent), transparent);
+  border-bottom: 1px solid var(--color-void-700);
+}
+.wiki-body .pi-header { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--color-astral-400); }
+
+.wiki-body .pi-data {
+  display: flex;
+  gap: .75rem;
+  padding: .45rem .75rem;
+  border-top: 1px solid color-mix(in oklab, var(--color-void-700) 70%, transparent);
+}
+.wiki-body .pi-data-label { flex: 0 0 38%; font-weight: 600; color: #a1a1aa; }
+.wiki-body .pi-data-value { flex: 1; min-width: 0; color: #d4d4d8; overflow-wrap: break-word; }
+.wiki-body .pi-data-value ul { margin: 0; padding-left: 1rem; }
+
+.wiki-body .pi-image { padding: .75rem; text-align: center; }
+.wiki-body .pi-image img { max-width: 100%; height: auto; border-radius: .5rem; }
+.wiki-body .pi-image-collection-tabs,
+.wiki-body .pi-section-navigation {
+  display: flex; flex-wrap: wrap; gap: .25rem;
+  padding: .5rem .75rem; margin: 0; list-style: none;
+  border-top: 1px solid var(--color-void-700);
+}
+.wiki-body .pi-image-collection-tabs li,
+.wiki-body .pi-section-tab {
+  border: 1px solid var(--color-void-600); border-radius: 999px;
+  padding: .15rem .6rem; font-size: .72rem; color: #a1a1aa; cursor: default;
+}
+.wiki-body .pi-border-color { border-color: var(--color-void-700); }
+.wiki-body .pi-secondary-background { background: var(--color-void-800); }
+
+/* Galleries and navboxes from upstream */
+.wiki-body .gallery { display: flex; flex-wrap: wrap; gap: .75rem; list-style: none; padding: 0; margin: 1.25rem 0; }
+.wiki-body .gallerybox { width: auto !important; }
+.wiki-body .gallerybox > div { background: var(--color-void-850); border: 1px solid var(--color-void-700); border-radius: .6rem; padding: .5rem; }
+.wiki-body .gallerytext { font-size: .75rem; color: #a1a1aa; }
+.wiki-body .gallerytext p { margin: .25rem 0 0; }
+
+.wiki-body .navbox { margin-top: 2rem; font-size: .8rem; border: 1px solid var(--color-void-700); border-radius: var(--radius-card); overflow: hidden; }
+.wiki-body .navbox-group { background: var(--color-void-800); color: #a1a1aa; font-weight: 600; padding: .4rem .6rem; white-space: nowrap; }
+.wiki-body .navbox-list { padding: .4rem .6rem; }
+
+/* Reference markers and the reflist */
+.wiki-body .reference { font-size: .72em; vertical-align: super; line-height: 0; }
+.wiki-body .references { font-size: .82rem; color: #a1a1aa; }
+.wiki-body .mw-heading { display: flex; align-items: baseline; }
+
+/* Neutralise upstream inline colours that assume a light background. */
+.wiki-body [style*="background:#fff"], .wiki-body [style*="background: #fff"],
+.wiki-body [style*="background-color:#fff"], .wiki-body [style*="background-color: #fff"] {
+  background: var(--color-void-800) !important;
+}
+.wiki-body .mw-editsection, .wiki-body .metadata { display: none; }

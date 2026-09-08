@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Wrong or missing article content
+    url: https://hoyodex.miraheze.org
+    about: Article text lives on the wiki, not in this repo. Edit it there and it flows into the next build.
+  - name: Security vulnerability
+    url: https://github.com/HoYoDex/web/security/advisories/new
+    about: Report privately, never as a public issue.

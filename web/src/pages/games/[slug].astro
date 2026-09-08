@@ -1,0 +1,39 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageCard from '../../components/PageCard.astro';
+import { getCollection } from 'astro:content';
+import { GAMES, gameForCategories } from '../../lib/games';
+
+export async function getStaticPaths() {
+  const pages = await getCollection('wiki');
+  return GAMES.map((game) => ({
+    params: { slug: game.slug },
+    props: {
+      game,
+      pages: pages
+        .filter((p) => gameForCategories(p.data.categories, p.data.title)?.slug === game.slug)
+        .sort((a, b) => a.data.displayTitle.localeCompare(b.data.displayTitle)),
+    },
+  }));
+}
+
+const { game, pages } = Astro.props;
+---
+<Base title={game.name} description={game.blurb}>
+  <h1 class="font-display text-3xl font-bold sm:text-4xl" style={`color:${game.accent}`}>{game.name}</h1>
+  <p class="mt-2 max-w-2xl text-zinc-400">{game.blurb}</p>
+  <p class="mt-1 text-sm text-zinc-500">Released {game.released} · {pages.length} indexed pages</p>
+
+  {pages.length === 0 ? (
+    <p class="mt-10 rounded-lg border border-dashed border-void-700 p-8 text-center text-zinc-500">
+      No pages indexed for this game yet.
+      <a href="https://hoyodex.miraheze.org" class="text-astral-400 underline" rel="noopener">Help write them on the wiki.</a>
+    </p>
+  ) : (
+    <div class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {pages.map((p) => (
+        <PageCard href={`/wiki/${p.id}`} title={p.data.displayTitle} meta={p.data.categories.slice(0, 3).join(' · ')} accent={game.accent} />
+      ))}
+    </div>
+  )}
+</Base>

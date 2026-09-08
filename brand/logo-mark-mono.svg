@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="HoYoDex">
+  <title>HoYoDex</title>
+  <g fill="currentColor">
+    <path d="M128 8 L232.5 68 L232.5 188 L128 248 L23.5 188 L23.5 68 Z M128 30 L42.5 79 L42.5 177 L128 226 L213.5 177 L213.5 79 Z"/>
+    <rect x="77" y="76" width="21" height="104" rx="10.5"/>
+    <rect x="158" y="76" width="21" height="104" rx="10.5"/>
+    <path d="M128 82 C133 118 138 123 174 128 C138 133 133 138 128 174 C123 138 118 133 82 128 C118 123 123 118 128 82 Z"/>
+  </g>
+</svg>

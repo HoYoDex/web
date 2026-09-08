@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="HoYoDex">
+  <title>HoYoDex</title>
+  <defs>
+    <linearGradient id="hd-astral" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7dd3fc"/>
+      <stop offset="52%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#a78bfa"/>
+    </linearGradient>
+    <linearGradient id="hd-ember" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <filter id="hd-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Shard: the index itself, a cut crystal facet -->
+  <path d="M128 8 L232.5 68 L232.5 188 L128 248 L23.5 188 L23.5 68 Z"
+        fill="#0d0d16" stroke="url(#hd-astral)" stroke-width="9" stroke-linejoin="round"/>
+  <path d="M128 30 L213.5 79 L213.5 177 L128 226 L42.5 177 L42.5 79 Z"
+        fill="none" stroke="url(#hd-astral)" stroke-width="2.5" stroke-opacity=".35" stroke-linejoin="round"/>
+
+  <!-- Stems of the H -->
+  <rect x="77" y="76" width="21" height="104" rx="10.5" fill="url(#hd-astral)"/>
+  <rect x="158" y="76" width="21" height="104" rx="10.5" fill="url(#hd-astral)"/>
+
+  <!-- Crossbar as a four-point astral star: the "dex" spark -->
+  <path d="M128 82 C133 118 138 123 174 128 C138 133 133 138 128 174 C123 138 118 133 82 128 C118 123 123 118 128 82 Z"
+        fill="url(#hd-ember)" filter="url(#hd-glow)"/>
+</svg>

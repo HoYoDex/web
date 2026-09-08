@@ -1,0 +1,35 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const pages = await getCollection('wiki');
+const groups = new Map<string, typeof pages>();
+for (const p of pages.sort((a, b) => a.data.displayTitle.localeCompare(b.data.displayTitle))) {
+  const first = p.data.displayTitle[0]?.toUpperCase() ?? '#';
+  const key = /[A-Z]/.test(first) ? first : '#';
+  groups.set(key, [...(groups.get(key) ?? []), p]);
+}
+const letters = [...groups.keys()].sort();
+---
+
+<Base title="Wiki index" description={`All ${pages.length} pages in the HoYoDex wiki index.`}>
+  <h1 class="font-display text-3xl font-bold">Wiki index</h1>
+  <p class="mt-2 text-zinc-400">{pages.length} pages, mirrored from the HoYoverse Universe Index.</p>
+
+  <div class="sticky top-16 z-30 -mx-4 mt-6 flex flex-wrap gap-1.5 bg-void-950/90 px-4 py-3 backdrop-blur">
+    {letters.map((l) => (
+      <a href={`#${l}`} class="rounded border border-void-700 px-2 py-0.5 font-mono text-xs text-zinc-400 hover:border-astral-500 hover:text-astral-400">{l}</a>
+    ))}
+  </div>
+
+  {letters.map((l) => (
+    <section id={l} class="scroll-mt-32 py-5">
+      <h2 class="mb-3 font-display text-xl font-semibold text-astral-400">{l}</h2>
+      <ul class="grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+        {groups.get(l)!.map((p) => (
+          <li><a href={`/wiki/${p.id}`} class="block truncate py-0.5 text-sm text-zinc-300 hover:text-astral-400">{p.data.displayTitle}</a></li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</Base>

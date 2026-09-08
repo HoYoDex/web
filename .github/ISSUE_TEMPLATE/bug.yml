@@ -1,0 +1,24 @@
+name: Bug report
+description: Something on the site is broken
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For wrong **article content**, edit the [wiki](https://hoyodex.miraheze.org) instead — this repo only renders it.
+  - type: input
+    id: url
+    attributes:
+      label: Page
+      placeholder: https://www.hoyodex.com/wiki/...
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens, and what you expected instead
+    validations: { required: true }
+  - type: input
+    id: env
+    attributes:
+      label: Browser and device
+      placeholder: Firefox 142, Android

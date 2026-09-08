@@ -1,0 +1,10 @@
+---
+interface Props { href: string; title: string; meta?: string; accent?: string; }
+const { href, title, meta, accent = '#38bdf8' } = Astro.props;
+---
+<a href={href}
+   class="card group block p-4"
+   style={`--accent:${accent}`}>
+  <h3 class="font-display text-base font-semibold text-zinc-100 group-hover:text-[var(--accent)]">{title}</h3>
+  {meta && <p class="mt-1 line-clamp-2 text-xs text-zinc-500">{meta}</p>}
+</a>

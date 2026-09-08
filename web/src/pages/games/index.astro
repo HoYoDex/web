@@ -1,0 +1,16 @@
+---
+import Base from '../../layouts/Base.astro';
+import { GAMES } from '../../lib/games';
+---
+<Base title="Games" description="Every HoYoverse game indexed on HoYoDex.">
+  <h1 class="font-display text-3xl font-bold">Games</h1>
+  <div class="mt-6 grid gap-4 sm:grid-cols-2">
+    {GAMES.map((g) => (
+      <a href={`/games/${g.slug}`} class="group rounded-xl border border-void-700 bg-void-900/50 p-6 transition-all hover:-translate-y-0.5 hover:border-[var(--a)]" style={`--a:${g.accent}`}>
+        <h2 class="font-display text-xl font-semibold group-hover:text-[var(--a)]">{g.name}</h2>
+        <p class="mt-1 text-xs text-zinc-500">Released {g.released}</p>
+        <p class="mt-3 text-sm text-zinc-400">{g.blurb}</p>
+      </a>
+    ))}
+  </div>
+</Base>

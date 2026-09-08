@@ -1,0 +1,94 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  sourceUrl?: string;
+}
+
+const {
+  title,
+  description = 'HoYoDex — the open, community-run index of every HoYoverse game.',
+  sourceUrl,
+} = Astro.props;
+
+const fullTitle = title === 'HoYoDex' ? title : `${title} · HoYoDex`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/logo-mark.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/logo-mark-180.png" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL('/og-image.png', Astro.site)} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@hoyodex_" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+    />
+  </head>
+
+  <body class="field flex min-h-screen flex-col font-sans">
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:rounded focus:bg-astral-500 focus:px-4 focus:py-2 focus:text-void-950">Skip to content</a>
+
+    <header class="sticky top-0 z-40 border-b border-void-700/80 bg-void-950/70 backdrop-blur-xl">
+      <nav class="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3.5">
+        <a href="/" class="group flex items-center gap-2.5 font-display text-xl font-bold tracking-tight text-zinc-100">
+          <img src="/logo-mark.svg" alt="" width="28" height="28" class="transition-transform duration-300 group-hover:rotate-[30deg]" />
+          <span>HoYo<span class="bg-gradient-to-r from-astral-400 to-nova-400 bg-clip-text text-transparent">Dex</span></span>
+        </a>
+        <div class="ml-auto flex items-center gap-1 text-sm">
+          {[['Games','/games'],['Wiki','/wiki'],['Search','/search']].map(([label, href]) => (
+            <a href={href}
+               class:list={["rounded-md px-3 py-1.5 transition-colors", Astro.url.pathname.startsWith(href) ? "bg-void-800 text-astral-400" : "text-zinc-400 hover:text-zinc-100"]}>{label}</a>
+          ))}
+          <a href="https://github.com/HoYoDex/web" rel="noopener"
+             class="ml-2 rounded-md border border-void-600 px-3 py-1.5 text-zinc-400 transition-colors hover:border-astral-500/60 hover:text-astral-400">GitHub</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main" class="mx-auto w-full max-w-6xl flex-1 px-4 py-8"><slot /></main>
+
+    <footer class="mt-16 border-t border-void-700/80 bg-void-900/40 backdrop-blur">
+      <div class="mx-auto max-w-6xl px-4 py-10">
+        <div class="mb-6 flex items-center gap-2.5 font-display text-lg font-bold text-zinc-300">
+          <img src="/logo-mark.svg" alt="" width="24" height="24" />
+          HoYoDex
+        </div>
+      <div class="space-y-3 text-sm text-zinc-500">
+        {sourceUrl && (
+          <p>
+            This page adapts content from the
+            <a class="text-astral-400 underline" href={sourceUrl} rel="noopener">HoYoverse Universe Index</a>,
+            available under
+            <a class="text-astral-400 underline" href="https://creativecommons.org/licenses/by-sa/4.0/" rel="noopener">CC BY-SA 4.0</a>.
+          </p>
+        )}
+        <p>
+          Site code licensed <a class="text-astral-400 underline" href="https://github.com/HoYoDex/web/blob/main/LICENSE" rel="noopener">AGPL-3.0-or-later</a>. Wiki content under CC BY-SA 4.0.
+        </p>
+        <p>
+          HoYoDex is a fan project. Not affiliated with, endorsed by, or sponsored by
+          COGNOSPHERE PTE. LTD., miHoYo, or HoYoverse. All game assets and trademarks
+          belong to their respective owners.
+        </p>
+      </div>
+      </div>
+    </footer>
+  </body>
+</html>

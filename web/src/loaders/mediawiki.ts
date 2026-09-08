@@ -1,0 +1,110 @@
+import type { Loader, LoaderContext } from 'astro/loaders';
+import { MediaWikiClient, rewriteHtml, toSlug, type MwPageStub } from '../lib/mediawiki';
+
+/**
+ * Bump whenever `rewriteHtml` or the shape of stored data changes.
+ * It is part of every page's digest, so bumping it invalidates the whole cache
+ * and forces a refetch — without it, a transform fix would silently only apply
+ * to pages that happened to be edited upstream since the last build.
+ */
+const TRANSFORM_VERSION = 2;
+
+export interface MediaWikiLoaderOptions {
+  endpoint: string;
+  userAgent: string;
+  namespaces?: number[];
+  concurrency?: number;
+  /** Cap pages fetched — useful for fast local iteration. */
+  limit?: number;
+}
+
+/**
+ * Content Layer loader for a MediaWiki install.
+ *
+ * The expensive call is `action=parse`, one request per page, and this wiki has
+ * ~2k articles. So we do a cheap listing pass first and compare each page's
+ * revision id against what's already in the store: an unchanged page costs us
+ * nothing on rebuild. That turns a ~2000-request cold build into a handful of
+ * requests on every subsequent one.
+ */
+export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
+  return {
+    name: 'mediawiki',
+
+    async load({ store, meta, logger, parseData, generateDigest }: LoaderContext) {
+      const client = new MediaWikiClient({
+        endpoint: options.endpoint,
+        userAgent: options.userAgent,
+        concurrency: options.concurrency,
+      });
+
+      logger.info(`Listing pages on ${options.endpoint}…`);
+      let pages = await client.listPages(options.namespaces ?? [0]);
+      if (options.limit) pages = pages.slice(0, options.limit);
+      logger.info(`Found ${pages.length} pages.`);
+
+      // Drop anything deleted upstream since the last build.
+      const live = new Set(pages.map((p) => toSlug(p.title)));
+      for (const id of store.keys()) {
+        if (!live.has(id)) store.delete(id);
+      }
+
+      const stale = pages.filter((p) => {
+        const existing = store.get(toSlug(p.title));
+        return (
+          !existing ||
+          existing.data.revid !== p.revid ||
+          existing.data.transformVersion !== TRANSFORM_VERSION
+        );
+      });
+
+      if (!stale.length) {
+        logger.info('No page changed since the last build — using cache.');
+        return;
+      }
+      logger.info(`Fetching ${stale.length} new or changed page(s)…`);
+
+      let done = 0;
+      const workers = Array.from({ length: options.concurrency ?? 6 }, async () => {
+        let page: MwPageStub | undefined;
+        while ((page = stale.pop())) {
+          try {
+            const parsed = await client.parsePage(page.title);
+            const id = toSlug(parsed.title);
+
+            const data = await parseData({
+              id,
+              data: {
+                title: parsed.title,
+                displayTitle: parsed.displaytitle,
+                pageid: parsed.pageid,
+                revid: page.revid,
+                transformVersion: TRANSFORM_VERSION,
+                updated: page.touched,
+                categories: parsed.categories,
+                sections: parsed.sections,
+                sourceUrl: `${options.endpoint}/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
+              },
+            });
+
+            const html = rewriteHtml(parsed.html, options.endpoint);
+            store.set({
+              id,
+              data,
+              rendered: { html },
+              digest: generateDigest({ revid: page.revid, v: TRANSFORM_VERSION }),
+            });
+          } catch (err) {
+            // One bad page must not sink a 2000-page build.
+            logger.warn(`Skipped "${page.title}": ${(err as Error).message}`);
+          }
+          if (++done % 100 === 0) logger.info(`  …${done} pages fetched`);
+        }
+      });
+
+      await Promise.all(workers);
+      meta.set('lastSync', new Date().toISOString());
+      logger.info(`Synced ${done} page(s).`);
+    },
+  };
+}
