@@ -1,17 +1,32 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getCollection, render } from 'astro:content';
+import { getCollection, getEntry } from 'astro:content';
 import { GAMES } from '../../lib/games';
+
+export const prerender = false;
 
 export async function getStaticPaths() {
   const pages = await getCollection('wiki');
-  return pages.map((page) => ({ params: { slug: page.id }, props: { page } }));
+  return pages.map((page) => ({ params: { slug: page.id } }));
 }
 
-const { page } = Astro.props;
-const { Content } = await render(page);
+const { slug } = Astro.params;
+const page = await getEntry('wiki', slug);
+if (!page) return Astro.redirect('/404');
+
 const game = GAMES.find((g) => g.slug === page.data.game);
-const toc = page.data.sections.filter((s) => s.level <= 3);
+const endpoint = game ? `https://${game.slug}.fandom.com` : 'https://genshin-impact.fandom.com'; // fallback if not found in GAMES but shouldn't happen
+// Fandom handles tears-of-themis differently so we'd need WIKI_ENDPOINTS, let's just import it or extract from sourceUrl
+const url = new URL(page.data.sourceUrl);
+const origin = url.origin;
+
+import { MediaWikiClient, rewriteHtml } from '../../lib/mediawiki';
+const client = new MediaWikiClient({ endpoint: origin, userAgent: 'HoYoDexBot/0.1 (https://hoyodex.com; tech@hoyodex.com)' });
+const parsed = await client.parsePage(page.data.title);
+const html = rewriteHtml(parsed.html, origin, page.data.game);
+const toc = parsed.sections.filter((s: any) => s.level <= 3);
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
 ---
 
 <Base title={page.data.displayTitle} description={`${page.data.displayTitle} — HoYoDex`} sourceUrl={page.data.sourceUrl}>
@@ -42,13 +57,13 @@ const toc = page.data.sections.filter((s) => s.level <= 3);
     <article class="min-w-0 flex-1 lg:order-1">
       <h1 class="font-display text-3xl font-bold sm:text-4xl">{page.data.displayTitle}</h1>
       <p class="mt-2 text-sm text-zinc-500">Last updated {page.data.updated.slice(0, 10)}</p>
-      <div class="wiki-body mt-6"><Content /></div>
+      <div class="wiki-body mt-6" set:html={html}></div>
 
-      {page.data.categories.length > 0 && (
+      {parsed.categories.length > 0 && (
         <footer class="mt-10 border-t border-void-700 pt-5">
           <h2 class="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Categories</h2>
           <ul class="flex flex-wrap gap-2">
-            {page.data.categories.map((c) => (
+            {parsed.categories.map((c: any) => (
               <li class="rounded-full border border-void-600 bg-void-800/60 px-3 py-1 text-xs text-zinc-400">{c}</li>
             ))}
           </ul>

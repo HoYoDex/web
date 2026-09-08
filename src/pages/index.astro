@@ -15,11 +15,9 @@ const recent = [...pages]
   .sort((a, b) => b.data.updated.localeCompare(a.data.updated))
   .slice(0, 8);
 
-const categoryCount = new Set(pages.flatMap((p) => p.data.categories)).size;
 const stats = [
   { label: 'Indexed pages', value: pages.length.toLocaleString() },
   { label: 'Games covered', value: String(GAMES.length) },
-  { label: 'Categories', value: categoryCount.toLocaleString() },
   { label: 'Cost to use', value: 'Free' },
 ];
 

@@ -66,47 +66,33 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
           logger.info(`[${gameSlug}] No page changed since the last build — using cache.`);
           continue;
         }
-        logger.info(`[${gameSlug}] Fetching ${stale.length} new or changed page(s)…`);
+        logger.info(`[${gameSlug}] Updating ${stale.length} page stub(s) in store…`);
 
-        const workers = Array.from({ length: options.concurrency ?? 6 }, async () => {
-          let page: MwPageStub | undefined;
-          while ((page = stale.pop())) {
-            try {
-              const parsed = await client.parsePage(page.title);
-              const id = `${gameSlug}/${toSlug(parsed.title)}`;
+        for (const page of stale) {
+          const id = `${gameSlug}/${toSlug(page.title)}`;
+          const data = await parseData({
+            id,
+            data: {
+              title: page.title,
+              displayTitle: page.title,
+              game: gameSlug,
+              pageid: page.pageid,
+              revid: page.revid,
+              transformVersion: TRANSFORM_VERSION,
+              updated: page.touched,
+              categories: [],
+              sections: [],
+              sourceUrl: `${endpoint}/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
+            },
+          });
 
-              const data = await parseData({
-                id,
-                data: {
-                  title: parsed.title,
-                  displayTitle: parsed.displaytitle,
-                  game: gameSlug,
-                  pageid: parsed.pageid,
-                  revid: page.revid,
-                  transformVersion: TRANSFORM_VERSION,
-                  updated: page.touched,
-                  categories: parsed.categories,
-                  sections: parsed.sections,
-                  sourceUrl: `${endpoint}/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
-                },
-              });
-
-              const html = rewriteHtml(parsed.html, endpoint, gameSlug);
-              store.set({
-                id,
-                data,
-                rendered: { html },
-                digest: generateDigest({ revid: page.revid, v: TRANSFORM_VERSION }),
-              });
-            } catch (err) {
-              // One bad page must not sink a 2000-page build.
-              logger.warn(`[${gameSlug}] Skipped "${page.title}": ${(err as Error).message}`);
-            }
-            if (++done % 100 === 0) logger.info(`  …${done} pages fetched`);
-          }
-        });
-
-        await Promise.all(workers);
+          store.set({
+            id,
+            data,
+            digest: generateDigest({ revid: page.revid, v: TRANSFORM_VERSION }),
+          });
+          done++;
+        }
       }
 
       // Drop anything deleted upstream since the last build.
