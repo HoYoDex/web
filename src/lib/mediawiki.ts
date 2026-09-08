@@ -21,6 +21,7 @@ export interface MwPageStub {
   /** Latest revision id — our change digest. */
   revid: number;
   touched: string;
+  categories?: string[];
 }
 
 export interface MwParsedPage {
@@ -117,15 +118,41 @@ export class MediaWikiClient {
           ...cont,
         });
 
-        for (const p of json.query?.pages ?? []) {
+        for (const p of Object.values(json.query?.pages ?? {}) as any[]) {
           const rev = p.revisions?.[0];
           if (!rev) continue;
-          out.push({ pageid: p.pageid, title: p.title, revid: rev.revid, touched: rev.timestamp });
+          out.push({
+            pageid: p.pageid,
+            title: p.title,
+            revid: rev.revid,
+            touched: rev.timestamp,
+            categories: [],
+          });
         }
         cont = json.continue ?? {};
       } while (Object.keys(cont).length);
     }
+    return out;
+  }
 
+  async fetchCategoryMembers(categoryTitle: string): Promise<number[]> {
+    const out: number[] = [];
+    let cont: Record<string, string> = {};
+    do {
+      const json = await this.#get({
+        action: 'query',
+        list: 'categorymembers',
+        cmtitle: `Category:${categoryTitle}`,
+        cmnamespace: 0,
+        cmlimit: 'max',
+        ...cont,
+      });
+
+      for (const p of json.query?.categorymembers ?? []) {
+        out.push(p.pageid);
+      }
+      cont = json.continue ?? {};
+    } while (Object.keys(cont).length);
     return out;
   }
 

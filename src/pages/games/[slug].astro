@@ -18,22 +18,78 @@ export async function getStaticPaths() {
 }
 
 const { game, pages } = Astro.props;
+
+// Hub categories to feature on the main game page
+const FEATURED_CATEGORIES = [
+  'Playable Characters',
+  'Characters',
+  'Weapons',
+  'Artifacts',
+  'Locations',
+  'Enemies',
+  'Quests'
+];
+
+const categoryGroups = new Map<string, typeof pages>();
+
+for (const p of pages) {
+  for (const cat of p.data.categories) {
+    if (FEATURED_CATEGORIES.includes(cat)) {
+      if (!categoryGroups.has(cat)) categoryGroups.set(cat, []);
+      categoryGroups.get(cat)!.push(p);
+    }
+  }
+}
+
+// Fallback if no featured categories exist (like for smaller wikis)
+const showFallback = categoryGroups.size === 0 && pages.length > 0;
 ---
 <Base title={game.name} description={game.blurb}>
-  <h1 class="font-display text-3xl font-bold sm:text-4xl" style={`color:${game.accent}`}>{game.name}</h1>
-  <p class="mt-2 max-w-2xl text-zinc-400">{game.blurb}</p>
-  <p class="mt-1 text-sm text-zinc-500">Released {game.released} · {pages.length} indexed pages</p>
+  <div class="mb-12 border-b border-void-700/60 pb-8 text-center sm:text-left">
+    <h1 class="font-display text-4xl font-bold tracking-tight sm:text-5xl" style={`color:${game.accent}`}>{game.name}</h1>
+    <p class="mt-3 text-lg text-zinc-400 max-w-2xl">{game.blurb}</p>
+    <div class="mt-4 flex flex-wrap items-center justify-center gap-4 sm:justify-start">
+      <span class="rounded-full border border-void-600 bg-void-800/60 px-3 py-1 text-xs font-medium text-zinc-300">
+        Released {game.released}
+      </span>
+      <span class="rounded-full border border-void-600 bg-void-800/60 px-3 py-1 text-xs font-medium text-zinc-300">
+        {pages.length.toLocaleString()} Indexed Pages
+      </span>
+      <a href={`/search?q=&game=${game.slug}`} class="text-sm font-medium transition-colors hover:text-zinc-100" style={`color:${game.accent}`}>
+        Search all pages →
+      </a>
+    </div>
+  </div>
 
   {pages.length === 0 ? (
-    <p class="mt-10 rounded-lg border border-dashed border-void-700 p-8 text-center text-zinc-500">
+    <p class="mt-10 rounded-xl border border-dashed border-void-700 p-12 text-center text-zinc-500">
       No pages indexed for this game yet.
-      <a href="https://genshin-impact.fandom.com" class="text-astral-400 underline" rel="noopener">Help write them on the wiki.</a>
+      <br/><a href={`https://${game.slug}.fandom.com`} class="mt-2 inline-block font-medium hover:underline" style={`color:${game.accent}`} rel="noopener">Help write them on the wiki.</a>
     </p>
-  ) : (
+  ) : showFallback ? (
     <div class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {pages.map((p) => (
+      {pages.slice(0, 50).map((p) => (
         <PageCard href={`/wiki/${p.id}`} title={p.data.displayTitle} meta={p.data.categories.slice(0, 3).join(' · ')} accent={game.accent} />
       ))}
+    </div>
+  ) : (
+    <div class="space-y-16">
+      {FEATURED_CATEGORIES.filter(c => categoryGroups.has(c)).map(cat => {
+        const groupPages = categoryGroups.get(cat)!;
+        return (
+          <section>
+            <div class="mb-4 flex items-end justify-between border-b border-void-700/50 pb-2">
+              <h2 class="font-display text-2xl font-bold text-zinc-100">{cat}</h2>
+              <a href={`/search?q=${encodeURIComponent(cat)}&game=${game.slug}`} class="text-sm transition-colors hover:text-zinc-300" style={`color:${game.accent}`}>View all {groupPages.length} →</a>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {groupPages.slice(0, 8).map((p) => (
+                <PageCard href={`/wiki/${p.id}`} title={p.data.displayTitle} meta={p.data.categories.filter(c => c !== cat).slice(0, 2).join(' · ')} accent={game.accent} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </div>
   )}
 </Base>

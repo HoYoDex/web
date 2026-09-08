@@ -80,7 +80,7 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
               revid: page.revid,
               transformVersion: TRANSFORM_VERSION,
               updated: page.touched,
-              categories: [],
+              categories: categoryMap.get(page.pageid) ?? [],
               sections: [],
               sourceUrl: `${endpoint}/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
             },
