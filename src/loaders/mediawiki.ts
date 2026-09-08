@@ -62,6 +62,32 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
           );
         });
 
+        // Fast category fetch for Game Hubs
+        const FEATURED_CATEGORIES = [
+          'Playable Characters',
+          'Characters',
+          'Weapons',
+          'Artifacts',
+          'Locations',
+          'Enemies',
+          'Quests'
+        ];
+        
+        const categoryMap = new Map<number, string[]>();
+        if (stale.length > 0) {
+          for (const p of pages) categoryMap.set(p.pageid, []);
+          for (const cat of FEATURED_CATEGORIES) {
+            try {
+              const members = await client.fetchCategoryMembers(cat);
+              for (const id of members) {
+                categoryMap.get(id)?.push(cat);
+              }
+            } catch (e) {
+              // Ignore if category doesn't exist on this specific wiki
+            }
+          }
+        }
+
         if (!stale.length) {
           logger.info(`[${gameSlug}] No page changed since the last build — using cache.`);
           continue;
