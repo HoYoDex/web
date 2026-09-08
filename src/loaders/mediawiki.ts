@@ -1,5 +1,6 @@
 import type { Loader, LoaderContext } from 'astro/loaders';
 import { MediaWikiClient, rewriteHtml, toSlug, type MwPageStub } from '../lib/mediawiki';
+import { GAMES } from '../lib/games';
 
 /**
  * Bump whenever `rewriteHtml` or the shape of stored data changes.
@@ -63,20 +64,20 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
         });
 
         // Fast category fetch for Game Hubs
-        const FEATURED_CATEGORIES = [
-          'Playable Characters',
-          'Characters',
-          'Weapons',
-          'Artifacts',
-          'Locations',
-          'Enemies',
-          'Quests'
-        ];
+        const FEATURED_CATEGORIES = new Set<string>();
+        const extractQueries = (items: any[]) => {
+          for (const item of items) {
+            if (item.query) FEATURED_CATEGORIES.add(item.query);
+            if (item.items) extractQueries(item.items);
+          }
+        };
+        const gameObj = GAMES.find(g => g.slug === gameSlug);
+        if (gameObj?.nav) extractQueries(gameObj.nav);
         
         const categoryMap = new Map<number, string[]>();
         if (stale.length > 0) {
           for (const p of pages) categoryMap.set(p.pageid, []);
-          for (const cat of FEATURED_CATEGORIES) {
+          for (const cat of Array.from(FEATURED_CATEGORIES)) {
             try {
               const members = await client.fetchCategoryMembers(cat);
               for (const id of members) {

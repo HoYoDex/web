@@ -1,6 +1,7 @@
 export interface NavItem {
   label: string;
-  items?: { label: string, query: string }[];
+  query?: string;
+  items?: NavItem[];
 }
 
 export interface Game {
@@ -20,12 +21,19 @@ const DEFAULT_NAV: NavItem[] = [
       { label: 'Main Page', query: '' },
       { label: 'All Pages', query: '' },
       { label: 'Community', query: 'Community' },
+      { label: 'Guidelines', items: [
+          { label: 'General Guidelines', query: 'General Guidelines' },
+          { label: 'Syntax Guidelines', query: 'Syntax Guidelines' }
+      ]}
     ]
   },
   {
     label: 'Characters',
     items: [
-      { label: 'Playable Characters', query: 'Playable Characters' },
+      { label: 'Playable Characters', items: [
+        { label: '5-Star Characters', query: '5-Star Characters' },
+        { label: '4-Star Characters', query: '4-Star Characters' }
+      ]},
       { label: 'Upcoming Characters', query: 'Upcoming Characters' },
       { label: 'NPCs', query: 'NPCs' },
     ]
@@ -34,15 +42,29 @@ const DEFAULT_NAV: NavItem[] = [
     label: 'The World',
     items: [
       { label: 'Locations', query: 'Locations' },
-      { label: 'Quests', query: 'Quests' },
-      { label: 'Enemies', query: 'Enemies' },
+      { label: 'Quests', items: [
+        { label: 'Archon Quests', query: 'Archon Quests' },
+        { label: 'Story Quests', query: 'Story Quests' },
+        { label: 'World Quests', query: 'World Quests' }
+      ]},
+      { label: 'Enemies', items: [
+        { label: 'Common Enemies', query: 'Common Enemies' },
+        { label: 'Elite Enemies', query: 'Elite Enemies' },
+        { label: 'Bosses', query: 'Bosses' }
+      ]},
       { label: 'Artifacts', query: 'Artifacts' },
     ]
   },
   {
     label: 'Other',
     items: [
-      { label: 'Weapons', query: 'Weapons' },
+      { label: 'Weapons', items: [
+        { label: 'Swords', query: 'Swords' },
+        { label: 'Bows', query: 'Bows' },
+        { label: 'Catalysts', query: 'Catalysts' },
+        { label: 'Polearms', query: 'Polearms' },
+        { label: 'Claymores', query: 'Claymores' }
+      ]},
       { label: 'Items', query: 'Items' },
       { label: 'Achievements', query: 'Achievements' },
     ]

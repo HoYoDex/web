@@ -2,6 +2,7 @@
 import '../styles/global.css';
 
 import type { Game } from '../lib/games';
+import NavDropdown from '../components/NavDropdown.astro';
 
 interface Props {
   title: string;
@@ -107,13 +108,7 @@ const navLinks = [
                     <svg class="h-3 w-3 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                   </button>
                   <div class="pointer-events-none absolute left-0 top-full z-50 mt-0 w-48 -translate-y-2 opacity-0 shadow-xl transition-all group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
-                    <div class="rounded-lg border border-void-700 bg-void-850 py-1 shadow-2xl backdrop-blur-xl">
-                      {menu.items?.map(item => (
-                        <a href={`/search?q=${encodeURIComponent(item.query)}&game=${game.slug}`} class="block px-4 py-2 text-sm text-zinc-300 hover:bg-void-700 hover:text-white">
-                          {item.label}
-                        </a>
-                      ))}
-                    </div>
+                    <NavDropdown items={menu.items || []} gameSlug={game.slug} />
                   </div>
                 </div>
               ))}
