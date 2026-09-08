@@ -18,7 +18,7 @@ is "does this force work to happen per request that could happen once at build?"
 ## Pipeline
 
 ```
-  hoyodex.miraheze.org
+  genshin-impact.fandom.com
    MediaWiki Action API
            │
            │  ① list revisions   (~5 requests, cheap)

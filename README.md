@@ -9,7 +9,7 @@
 [![Astro](https://img.shields.io/badge/Astro-7-fbbf24.svg?style=flat-square)](https://astro.build)
 [![Deploy](https://img.shields.io/badge/Cloudflare-Workers-f97316.svg?style=flat-square)](https://workers.cloudflare.com)
 
-[hoyodex.com](https://hoyodex.com) · [Wiki](https://hoyodex.miraheze.org) · [Contributing](CONTRIBUTING.md) · [Deploying](CLOUDFLARE.md)
+[hoyodex.com](https://hoyodex.com) · [Wiki](https://genshin-impact.fandom.com) · [Contributing](CONTRIBUTING.md) · [Deploying](CLOUDFLARE.md)
 
 </div>
 
@@ -28,7 +28,7 @@ paywalls, no login required to read anything.
 ## How it works
 
 The site is a static build over content pulled from the
-[HoYoverse Universe Index](https://hoyodex.miraheze.org) via the MediaWiki
+[HoYoverse Universe Index](https://genshin-impact.fandom.com) via the MediaWiki
 Action API.
 
 ```

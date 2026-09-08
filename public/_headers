@@ -15,4 +15,4 @@
   # rendering each response, and this site is static; hashes would change on
   # every build. The remaining directives still block the things that matter —
   # external script origins, framing, plugins and base-tag injection.
-  Content-Security-Policy: default-src 'self'; img-src 'self' data: https://static.wikitide.net https://static.miraheze.org https://hoyodex.miraheze.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; img-src 'self' data: https://static.wikia.nocookie.net https://vignette.wikia.nocookie.net https://genshin-impact.fandom.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'

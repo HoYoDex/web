@@ -23,7 +23,7 @@ Three, unavoidably:
 | Who | Why | What they can see |
 |---|---|---|
 | **Cloudflare** | Hosts and serves the site | Standard request data — IP, user agent, requested URL — subject to [Cloudflare's privacy policy](https://www.cloudflare.com/privacypolicy/) |
-| **Wikitide / Miraheze CDN** | Serves article images | Your IP and referring page when an image loads. Images are hotlinked rather than rehosted |
+| **Fandom CDN** | Serves article images | Your IP and referring page when an image loads. Images are hotlinked rather than rehosted |
 | **Google Fonts** | Serves the two typefaces | Your IP when the font files load |
 
 We do not receive data from any of them about you.
@@ -38,8 +38,8 @@ Your queries are never sent anywhere.
 
 ## The wiki
 
-[hoyodex.miraheze.org](https://hoyodex.miraheze.org) is a separate service run
-by Miraheze, with its own privacy policy. Editing there means creating an
+[genshin-impact.fandom.com](https://genshin-impact.fandom.com) is a separate service run
+by Fandom, with its own privacy policy. Editing there means creating an
 account with them, not with us.
 
 ## Contact

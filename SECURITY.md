@@ -19,8 +19,8 @@ In scope:
 
 Out of scope:
 
-- The upstream wiki at `hoyodex.miraheze.org` — report those to
-  [Miraheze](https://meta.miraheze.org/wiki/Special:Contact)
+- The upstream wiki at `genshin-impact.fandom.com` — report those to
+  [Fandom](https://support.fandom.com)
 - Denial of service through volumetric traffic
 - Findings from automated scanners without a demonstrated impact
 

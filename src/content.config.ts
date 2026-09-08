@@ -1,7 +1,7 @@
 import { defineCollection, z } from 'astro:content';
 import { mediaWikiLoader } from './loaders/mediawiki';
 
-const WIKI_ENDPOINT = 'https://hoyodex.miraheze.org';
+const WIKI_ENDPOINT = 'https://genshin-impact.fandom.com';
 
 const wiki = defineCollection({
   loader: mediaWikiLoader({

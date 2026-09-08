@@ -61,7 +61,7 @@ export class MediaWikiClient {
   }
 
   async #get(params: Record<string, string | number>): Promise<any> {
-    const url = new URL(`${this.#endpoint}/w/api.php`);
+    const url = new URL(`${this.#endpoint}/api.php`);
     for (const [k, v] of Object.entries({
       format: 'json',
       formatversion: '2',
