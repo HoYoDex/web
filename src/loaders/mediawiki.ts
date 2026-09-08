@@ -71,8 +71,10 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
             if (item.items) extractQueries(item.items);
           }
         };
-        const gameObj = GAMES.find(g => g.slug === gameSlug);
-        if (gameObj?.nav) extractQueries(gameObj.nav);
+        
+        const { fetchLiveNavigation } = await import('../lib/navParser');
+        const liveNav = await fetchLiveNavigation(gameSlug);
+        extractQueries(liveNav);
         
         const categoryMap = new Map<number, string[]>();
         if (stale.length > 0) {

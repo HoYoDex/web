@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import { getCollection, getEntry } from 'astro:content';
 import { GAMES } from '../../lib/games';
+import { fetchLiveNavigation } from '../../lib/navParser';
 
 export const prerender = false;
 
@@ -11,10 +12,11 @@ export async function getStaticPaths() {
 }
 
 const { slug } = Astro.params;
-const page = await getEntry('wiki', slug);
+const page = await getEntry('wiki', slug!);
 if (!page) return Astro.redirect('/404');
 
 const game = GAMES.find((g) => g.slug === page.data.game);
+const liveNav = game ? await fetchLiveNavigation(game.slug) : undefined;
 const endpoint = game ? `https://${game.slug}.fandom.com` : 'https://genshin-impact.fandom.com'; // fallback if not found in GAMES but shouldn't happen
 // Fandom handles tears-of-themis differently so we'd need WIKI_ENDPOINTS, let's just import it or extract from sourceUrl
 const url = new URL(page.data.sourceUrl);
@@ -38,7 +40,7 @@ const FEATURED_CATEGORIES = [
 ];
 ---
 
-<Base title={page.data.displayTitle} description={`${page.data.displayTitle} — HoYoDex`} sourceUrl={page.data.sourceUrl} wide={true} game={game}>
+<Base title={page.data.displayTitle} description={`${page.data.displayTitle} — HoYoDex`} sourceUrl={page.data.sourceUrl} wide={true} game={game} nav={liveNav}>
   <div class="flex flex-col gap-8 xl:flex-row xl:items-start">
     {/* MAIN CONTENT */}
     <article class="min-w-0 flex-1 rounded-2xl border border-void-700 bg-void-900/40 p-6 backdrop-blur-sm sm:p-10 shadow-2xl shadow-void-950/50">

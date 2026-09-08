@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 
-import type { Game } from '../lib/games';
+import type { Game, NavItem } from '../lib/games';
 import NavDropdown from '../components/NavDropdown.astro';
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
   sourceUrl?: string;
   wide?: boolean;
   game?: Game;
+  nav?: NavItem[];
 }
 
 const {
@@ -18,8 +19,10 @@ const {
   sourceUrl,
   wide = false,
   game,
+  nav,
 } = Astro.props;
 
+const currentNav = nav || game?.nav;
 const fullTitle = title === 'HoYoDex' ? title : `${title} · HoYoDex`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 
@@ -101,7 +104,7 @@ const navLinks = [
             {/* HORIZONTAL NAVBAR WITH DROPDOWNS */}
             <nav class="flex items-center gap-1">
               <a href={`/games/${game.slug}`} class="border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:text-white hover:border-astral-400">Home</a>
-              {game.nav?.map(menu => (
+              {currentNav?.map(menu => (
                 <div class="group relative">
                   <button class="flex items-center gap-1 border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-zinc-300 transition-colors group-hover:border-astral-400 group-hover:text-white">
                     {menu.label}
