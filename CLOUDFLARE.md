@@ -1,0 +1,43 @@
+# Deploying on Cloudflare
+
+This project deploys through Cloudflare's own Git integration — connect the repo
+in the dashboard and it builds on every push to `main`. There are no GitHub
+Actions workflows here by design.
+
+## Build settings
+
+In **Workers & Pages → Create → Import a repository**, point it at `HoYoDex/web` and set:
+
+| Setting | Value |
+|---|---|
+| Build command | `pnpm install && pnpm build` |
+| Deploy command | `npx wrangler deploy` |
+| Root directory | `/` |
+| Path to `wrangler.jsonc` | `web/wrangler.jsonc` |
+
+Node 22.12+ is required. Set `NODE_VERSION=22` as a build environment variable
+if the default image is older.
+
+## Custom domain
+
+Add `www.hoyodex.com` under the Worker's **Domains & Routes**, and redirect the
+apex `hoyodex.com` to it with a Bulk Redirect or a Redirect Rule.
+
+## One thing to know about content freshness
+
+The site is built statically from the wiki. Cloudflare rebuilds on **git push**,
+so a wiki edit alone will not update the site — there is no commit to trigger a
+build.
+
+Options, in order of simplicity:
+
+1. **Deploy hook + scheduler.** Create a deploy hook URL in the Cloudflare
+   dashboard and call it on a schedule (a Cloudflare Cron Trigger, or any cron
+   service). This is the least moving parts.
+2. **Manual redeploy** from the dashboard when you know the wiki has changed.
+3. Re-add a scheduled GitHub Action later if you want it in-repo.
+
+A rebuild is cheap — the loader only refetches pages whose revision changed, so
+a no-op rebuild takes about 25 seconds rather than the 5 minutes a cold one does.
+Note that Cloudflare build environments start with an empty `web/.astro` cache,
+so builds there are always cold unless you cache that directory.
