@@ -14,12 +14,12 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "dev": "NODE_OPTIONS=--max_old_space_size=8192 astro dev",
+    "build": "NODE_OPTIONS=--max_old_space_size=8192 astro build",
     "preview": "wrangler dev",
-    "deploy": "astro build && wrangler deploy",
-    "astro": "astro",
-    "check": "astro check",
+    "deploy": "NODE_OPTIONS=--max_old_space_size=8192 astro build && wrangler deploy",
+    "astro": "NODE_OPTIONS=--max_old_space_size=8192 astro",
+    "check": "NODE_OPTIONS=--max_old_space_size=8192 astro check",
     "format": "prettier --write ."
   },
   "dependencies": {
