@@ -175,7 +175,7 @@ export function toSlug(title: string): string {
  * Rewrite parser HTML so it works on our origin:
  * internal wiki links point at our routes, everything else is made absolute.
  */
-export function rewriteHtml(html: string, endpoint: string): string {
+export function rewriteHtml(html: string, endpoint: string, prefix: string): string {
   return (
     html
       // 1. Protocol-relative asset URLs (static.wikitide.net, etc.) -> https.
@@ -190,7 +190,7 @@ export function rewriteHtml(html: string, endpoint: string): string {
         new RegExp(`href="${endpoint}/wiki/([^"#?:]+)(#[^"]*)?"`, 'g'),
         (_m, page: string, hash = '') => {
           const title = decodeURIComponent(page).replace(/_/g, ' ');
-          return `href="/wiki/${toSlug(title)}${hash}"`;
+          return `href="/wiki/${prefix}/${toSlug(title)}${hash}"`;
         }
       )
       // 4. Wiki content is untrusted-ish and must not break our page.

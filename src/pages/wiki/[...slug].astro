@@ -1,7 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { getCollection, render } from 'astro:content';
-import { gameForCategories } from '../../lib/games';
+import { GAMES } from '../../lib/games';
 
 export async function getStaticPaths() {
   const pages = await getCollection('wiki');
@@ -10,7 +10,7 @@ export async function getStaticPaths() {
 
 const { page } = Astro.props;
 const { Content } = await render(page);
-const game = gameForCategories(page.data.categories, page.data.title);
+const game = GAMES.find((g) => g.slug === page.data.game);
 const toc = page.data.sections.filter((s) => s.level <= 3);
 ---
 

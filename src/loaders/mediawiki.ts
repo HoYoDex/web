@@ -7,10 +7,10 @@ import { MediaWikiClient, rewriteHtml, toSlug, type MwPageStub } from '../lib/me
  * and forces a refetch — without it, a transform fix would silently only apply
  * to pages that happened to be edited upstream since the last build.
  */
-const TRANSFORM_VERSION = 2;
+const TRANSFORM_VERSION = 3;
 
 export interface MediaWikiLoaderOptions {
-  endpoint: string;
+  endpoints: Record<string, string>;
   userAgent: string;
   namespaces?: number[];
   concurrency?: number;
@@ -32,79 +32,90 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
     name: 'mediawiki',
 
     async load({ store, meta, logger, parseData, generateDigest }: LoaderContext) {
-      const client = new MediaWikiClient({
-        endpoint: options.endpoint,
-        userAgent: options.userAgent,
-        concurrency: options.concurrency,
-      });
+      let done = 0;
+      const live = new Set<string>();
 
-      logger.info(`Listing pages on ${options.endpoint}…`);
-      let pages = await client.listPages(options.namespaces ?? [0]);
-      if (options.limit) pages = pages.slice(0, options.limit);
-      logger.info(`Found ${pages.length} pages.`);
+      for (const [gameSlug, endpoint] of Object.entries(options.endpoints)) {
+        const client = new MediaWikiClient({
+          endpoint,
+          userAgent: options.userAgent,
+          concurrency: options.concurrency,
+        });
+
+        logger.info(`[${gameSlug}] Listing pages on ${endpoint}…`);
+        let pages = await client.listPages(options.namespaces ?? [0]);
+        if (options.limit) pages = pages.slice(0, options.limit);
+        logger.info(`[${gameSlug}] Found ${pages.length} pages.`);
+
+        // Add to live set
+        for (const p of pages) {
+          live.add(`${gameSlug}/${toSlug(p.title)}`);
+        }
+
+        const stale = pages.filter((p) => {
+          const id = `${gameSlug}/${toSlug(p.title)}`;
+          const existing = store.get(id);
+          return (
+            !existing ||
+            existing.data.revid !== p.revid ||
+            existing.data.transformVersion !== TRANSFORM_VERSION
+          );
+        });
+
+        if (!stale.length) {
+          logger.info(`[${gameSlug}] No page changed since the last build — using cache.`);
+          continue;
+        }
+        logger.info(`[${gameSlug}] Fetching ${stale.length} new or changed page(s)…`);
+
+        const workers = Array.from({ length: options.concurrency ?? 6 }, async () => {
+          let page: MwPageStub | undefined;
+          while ((page = stale.pop())) {
+            try {
+              const parsed = await client.parsePage(page.title);
+              const id = `${gameSlug}/${toSlug(parsed.title)}`;
+
+              const data = await parseData({
+                id,
+                data: {
+                  title: parsed.title,
+                  displayTitle: parsed.displaytitle,
+                  game: gameSlug,
+                  pageid: parsed.pageid,
+                  revid: page.revid,
+                  transformVersion: TRANSFORM_VERSION,
+                  updated: page.touched,
+                  categories: parsed.categories,
+                  sections: parsed.sections,
+                  sourceUrl: `${endpoint}/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
+                },
+              });
+
+              const html = rewriteHtml(parsed.html, endpoint, gameSlug);
+              store.set({
+                id,
+                data,
+                rendered: { html },
+                digest: generateDigest({ revid: page.revid, v: TRANSFORM_VERSION }),
+              });
+            } catch (err) {
+              // One bad page must not sink a 2000-page build.
+              logger.warn(`[${gameSlug}] Skipped "${page.title}": ${(err as Error).message}`);
+            }
+            if (++done % 100 === 0) logger.info(`  …${done} pages fetched`);
+          }
+        });
+
+        await Promise.all(workers);
+      }
 
       // Drop anything deleted upstream since the last build.
-      const live = new Set(pages.map((p) => toSlug(p.title)));
       for (const id of store.keys()) {
         if (!live.has(id)) store.delete(id);
       }
 
-      const stale = pages.filter((p) => {
-        const existing = store.get(toSlug(p.title));
-        return (
-          !existing ||
-          existing.data.revid !== p.revid ||
-          existing.data.transformVersion !== TRANSFORM_VERSION
-        );
-      });
-
-      if (!stale.length) {
-        logger.info('No page changed since the last build — using cache.');
-        return;
-      }
-      logger.info(`Fetching ${stale.length} new or changed page(s)…`);
-
-      let done = 0;
-      const workers = Array.from({ length: options.concurrency ?? 6 }, async () => {
-        let page: MwPageStub | undefined;
-        while ((page = stale.pop())) {
-          try {
-            const parsed = await client.parsePage(page.title);
-            const id = toSlug(parsed.title);
-
-            const data = await parseData({
-              id,
-              data: {
-                title: parsed.title,
-                displayTitle: parsed.displaytitle,
-                pageid: parsed.pageid,
-                revid: page.revid,
-                transformVersion: TRANSFORM_VERSION,
-                updated: page.touched,
-                categories: parsed.categories,
-                sections: parsed.sections,
-                sourceUrl: `${options.endpoint}/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
-              },
-            });
-
-            const html = rewriteHtml(parsed.html, options.endpoint);
-            store.set({
-              id,
-              data,
-              rendered: { html },
-              digest: generateDigest({ revid: page.revid, v: TRANSFORM_VERSION }),
-            });
-          } catch (err) {
-            // One bad page must not sink a 2000-page build.
-            logger.warn(`Skipped "${page.title}": ${(err as Error).message}`);
-          }
-          if (++done % 100 === 0) logger.info(`  …${done} pages fetched`);
-        }
-      });
-
-      await Promise.all(workers);
       meta.set('lastSync', new Date().toISOString());
-      logger.info(`Synced ${done} page(s).`);
+      logger.info(`Synced ${done} page(s) across all wikis.`);
     },
   };
 }

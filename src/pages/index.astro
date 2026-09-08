@@ -1,14 +1,14 @@
 ---
 import Base from '../layouts/Base.astro';
 import { getCollection } from 'astro:content';
-import { GAMES, gameForCategories } from '../lib/games';
+import { GAMES } from '../lib/games';
 
 const pages = await getCollection('wiki');
 
 const counts = new Map<string, number>();
 for (const p of pages) {
-  const g = gameForCategories(p.data.categories, p.data.title);
-  if (g) counts.set(g.slug, (counts.get(g.slug) ?? 0) + 1);
+  const g = p.data.game;
+  if (g) counts.set(g, (counts.get(g) ?? 0) + 1);
 }
 
 const recent = [...pages]

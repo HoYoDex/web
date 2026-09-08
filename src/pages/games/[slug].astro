@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import PageCard from '../../components/PageCard.astro';
 import { getCollection } from 'astro:content';
-import { GAMES, gameForCategories } from '../../lib/games';
+import { GAMES } from '../../lib/games';
 
 export async function getStaticPaths() {
   const pages = await getCollection('wiki');
@@ -11,7 +11,7 @@ export async function getStaticPaths() {
     props: {
       game,
       pages: pages
-        .filter((p) => gameForCategories(p.data.categories, p.data.title)?.slug === game.slug)
+        .filter((p) => p.data.game === game.slug)
         .sort((a, b) => a.data.displayTitle.localeCompare(b.data.displayTitle)),
     },
   }));

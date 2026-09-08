@@ -1,11 +1,18 @@
 import { defineCollection, z } from 'astro:content';
 import { mediaWikiLoader } from './loaders/mediawiki';
 
-const WIKI_ENDPOINT = 'https://genshin-impact.fandom.com';
+const WIKI_ENDPOINTS: Record<string, string> = {
+  'genshin-impact': 'https://genshin-impact.fandom.com',
+  'honkai-star-rail': 'https://honkai-star-rail.fandom.com',
+  'zenless-zone-zero': 'https://zenless-zone-zero.fandom.com',
+  'honkai-impact-3rd': 'https://honkaiimpact3.fandom.com',
+  'tears-of-themis': 'https://tearsofthemis.fandom.com',
+  'guns-girlz': 'https://houkai2nd.fandom.com',
+};
 
 const wiki = defineCollection({
   loader: mediaWikiLoader({
-    endpoint: WIKI_ENDPOINT,
+    endpoints: WIKI_ENDPOINTS,
     userAgent: 'HoYoDexBot/0.1 (https://hoyodex.com; tech@hoyodex.com)',
     namespaces: [0],
     concurrency: 6,
@@ -15,6 +22,7 @@ const wiki = defineCollection({
   schema: z.object({
     title: z.string(),
     displayTitle: z.string(),
+    game: z.string(),
     pageid: z.number(),
     revid: z.number(),
     transformVersion: z.number(),

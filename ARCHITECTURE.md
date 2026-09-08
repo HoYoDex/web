@@ -75,25 +75,9 @@ titles and categories: `Zhongli (YS-MU)`, `Acheron (BX-IZ)`, `Luke Pearce (WS-MU
 The first two letters identify the game, the rest a specific universe or
 timeline within it. These were derived empirically from all 2,472 categories on
 the wiki:
+Each wiki maps to a specific HoYoverse game. The `mediaWikiLoader` fetches pages from all these wikis in parallel and tags them with their respective game slug (e.g. `genshin-impact`).
 
-| Code | Game | Categories |
-|------|------|-----------|
-| `YS` | Genshin Impact | 285 |
-| `BX` | Honkai: Star Rail | 127 |
-| `ZZ` | Zenless Zone Zero | 75 |
-| `B3` | Honkai Impact 3rd | 62 |
-| `WS` | Tears of Themis | 49 |
-| `B2`, `FM` | Guns GirlZ | 21 |
-| `B1` | Honkai Gakuen | 1 |
-
-`gameForCategories()` resolves in descending order of confidence: a code in the
-page's own title, then a majority vote across coded categories, then plain game
-names in category text. Roughly 81% of pages resolve. The remainder — voice
-actors, staff, meta pages — genuinely belong to no game and correctly return
-`undefined`.
-
-The majority vote matters because pages legitimately span games: a character
-with variants across three titles carries codes for all three.
+This means the application knows exactly which game a page belongs to without needing to parse the page title or content.
 
 ### Rendering
 
