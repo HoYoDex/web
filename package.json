@@ -9,12 +9,7 @@
     "dev": "pnpm --filter web dev",
     "build": "pnpm --filter web build",
     "preview": "pnpm --filter web preview",
-    "deploy": "pnpm --filter web deploy",
-    "brand": "node brand/build-assets.mjs"
+    "deploy": "pnpm --filter web deploy"
   },
-  "devDependencies": {
-    "playwright": "^1.63.0",
-    "png-to-ico": "^3.0.0",
-    "sharp": "^0.35.4"
-  }
+  "description": "The open, community-run index of every HoYoverse game."
 }

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="brand/png/logo-lockup-800.png" alt="HoYoDex" width="440">
+<img src="web/public/logo-lockup-800.png" alt="HoYoDex" width="440">
 
 **The open, community-run index of every HoYoverse game.**
 
@@ -75,7 +75,6 @@ HOYODEX_PAGE_LIMIT=50 pnpm dev    # 50 pages only — use this while iterating
 | `pnpm dev` | Dev server at `localhost:4321` |
 | `pnpm build` | Production build into `web/dist` |
 | `pnpm preview` | Serve the build through Workers locally |
-| `pnpm brand` | Regenerate all logo raster formats from the SVGs |
 
 The content cache lives in `web/.astro/`. Delete it to force a full refetch.
 
@@ -92,13 +91,27 @@ web/
 │   └── pages/                 Routes
 └── wrangler.jsonc             Cloudflare Workers config
 
-brand/                         Logo sources and generated raster formats
+    └── public/             Static assets, including the served brand marks
 ```
 
 ## Deploying
 
 Cloudflare builds this repo directly on push to `main` — see [CLOUDFLARE.md](CLOUDFLARE.md)
 for build settings and a note on keeping content fresh.
+
+## Documentation
+
+| | |
+|---|---|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | How the ingest pipeline and rendering work, and why |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Setup, conventions, and what belongs here vs. the wiki |
+| [ATTRIBUTION.md](ATTRIBUTION.md) | The three licences that apply and our obligations |
+| [CLOUDFLARE.md](CLOUDFLARE.md) | Deployment settings and content freshness |
+| [GOVERNANCE.md](GOVERNANCE.md) | How decisions get made |
+| [SUPPORT.md](SUPPORT.md) | Where to ask for help |
+| [SECURITY.md](SECURITY.md) | Reporting vulnerabilities |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Expected behaviour |
+| [CHANGELOG.md](CHANGELOG.md) | What changed |
 
 ## Licensing
 

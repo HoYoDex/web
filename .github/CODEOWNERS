@@ -1,0 +1,9 @@
+# Default owner for everything.
+*                       @AlzyWelzy
+
+# The ingest pipeline and licensing docs get extra scrutiny — changes here can
+# break our obligations to the upstream wiki or hammer their servers.
+/web/src/lib/mediawiki.ts     @AlzyWelzy
+/web/src/loaders/            @AlzyWelzy
+/ATTRIBUTION.md              @AlzyWelzy
+/LICENSE                     @AlzyWelzy
