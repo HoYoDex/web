@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="web/public/logo-lockup-800.png" alt="HoYoDex" width="440">
+<img src="public/logo-lockup-800.png" alt="HoYoDex" width="440">
 
 **The open, community-run index of every HoYoverse game.**
 
@@ -73,25 +73,25 @@ HOYODEX_PAGE_LIMIT=50 pnpm dev    # 50 pages only — use this while iterating
 | Command | Does |
 |---------|------|
 | `pnpm dev` | Dev server at `localhost:4321` |
-| `pnpm build` | Production build into `web/dist` |
+| `pnpm build` | Production build into `dist/` |
 | `pnpm preview` | Serve the build through Workers locally |
 
-The content cache lives in `web/.astro/`. Delete it to force a full refetch.
+The content cache lives in `.astro/`. Delete it to force a full refetch.
 
 ## Layout
 
 ```
-web/
-├── src/
-│   ├── lib/mediawiki.ts       MediaWiki API client — rate limited, maxlag aware
-│   ├── lib/games.ts           Universe-code → game taxonomy
-│   ├── loaders/mediawiki.ts   Content Layer loader with revision caching
-│   ├── content.config.ts      Collection schema
-│   ├── components/            Astro components + the React search island
-│   └── pages/                 Routes
-└── wrangler.jsonc             Cloudflare Workers config
+src/
+├── lib/mediawiki.ts       MediaWiki API client — rate limited, maxlag aware
+├── lib/games.ts           Universe-code → game taxonomy
+├── loaders/mediawiki.ts   Content Layer loader with revision caching
+├── content.config.ts      Collection schema
+├── components/            Astro components + the React search island
+├── pages/                 Routes
+└── styles/global.css      Tailwind theme + rendered-wiki-HTML styling
 
-    └── public/             Static assets, including the served brand marks
+public/                    Static assets, including the served brand marks
+wrangler.jsonc             Cloudflare Workers config
 ```
 
 ## Deploying

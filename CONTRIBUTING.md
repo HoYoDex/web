@@ -17,7 +17,7 @@ here.
 
 ```bash
 git clone https://github.com/HoYoDex/web.git
-cd web
+cd web            # the repo is named "web"
 pnpm install
 HOYODEX_PAGE_LIMIT=50 pnpm dev
 ```

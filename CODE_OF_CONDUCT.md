@@ -25,7 +25,7 @@ rolled for.
 
 ## Enforcement
 
-Report problems to **conduct@hoyodex.com**. Reports are handled confidentially.
+Report problems to **tech@hoyodex.com**. Reports are handled confidentially.
 
 Maintainers may remove comments, commits, issues, and PRs that violate this
 policy, and may temporarily or permanently ban contributors for repeated or

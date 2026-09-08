@@ -13,7 +13,6 @@ In **Workers & Pages → Create → Import a repository**, point it at `HoYoDex/
 | Build command | `pnpm install && pnpm build` |
 | Deploy command | `npx wrangler deploy` |
 | Root directory | `/` |
-| Path to `wrangler.jsonc` | `web/wrangler.jsonc` |
 
 Node 22.12+ is required. Set `NODE_VERSION=22` as a build environment variable
 if the default image is older.
@@ -39,5 +38,5 @@ Options, in order of simplicity:
 
 A rebuild is cheap — the loader only refetches pages whose revision changed, so
 a no-op rebuild takes about 25 seconds rather than the 5 minutes a cold one does.
-Note that Cloudflare build environments start with an empty `web/.astro` cache,
+Note that Cloudflare build environments start with an empty `.astro` cache,
 so builds there are always cold unless you cache that directory.

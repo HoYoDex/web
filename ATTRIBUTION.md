@@ -36,7 +36,7 @@ same treatment. Do not add sources whose terms forbid automated access.
 
 The HoYoDex name and logo are **not** covered by the AGPL. They live in a
 separate private repository. A fork of this site must replace the branding in
-`web/public/` and the wordmark in the layout.
+`public/` and the wordmark in the layout.
 
 This is normal for free software (Firefox and Chromium do the same) and is not
 a restriction on your right to fork the code.
@@ -51,7 +51,7 @@ HoYoDex is an unofficial fan project, not affiliated with, endorsed by, or
 sponsored by any of them. Game imagery is used for identification and commentary.
 Images are hotlinked from the wiki's CDN rather than rehosted.
 
-If you are a rights holder with a concern, contact **legal@hoyodex.com**.
+If you are a rights holder with a concern, contact **tech@hoyodex.com**.
 
 ## Third-party dependencies
 

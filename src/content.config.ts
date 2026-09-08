@@ -6,7 +6,7 @@ const WIKI_ENDPOINT = 'https://hoyodex.miraheze.org';
 const wiki = defineCollection({
   loader: mediaWikiLoader({
     endpoint: WIKI_ENDPOINT,
-    userAgent: 'HoYoDexBot/0.1 (https://www.hoyodex.com; contact@hoyodex.com)',
+    userAgent: 'HoYoDexBot/0.1 (https://www.hoyodex.com; tech@hoyodex.com)',
     namespaces: [0],
     concurrency: 6,
     // Set HOYODEX_PAGE_LIMIT=50 for a fast local build.

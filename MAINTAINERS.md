@@ -6,4 +6,4 @@
 
 See [GOVERNANCE.md](GOVERNANCE.md) for how this list changes.
 
-Security reports go to **security@hoyodex.com**, not to individuals.
+Security reports go to **tech@hoyodex.com**, not to individuals.
