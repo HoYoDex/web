@@ -106,7 +106,14 @@ export class MediaWikiClient {
 
     for (const ns of namespaces) {
       let cont: Record<string, string> = {};
+      let first = true;
       do {
+        // A large wiki paginates into dozens of these (500/page), fired
+        // back-to-back with no gap. A small pause between pages keeps our
+        // own burst rate down without meaningfully slowing a build.
+        if (!first) await sleep(150);
+        first = false;
+
         const json = await this.#get({
           action: 'query',
           generator: 'allpages',
@@ -201,7 +208,7 @@ export class MediaWikiClient {
   }
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const stripTags = (s: string) => s.replace(/<[^>]*>/g, '').trim();
 
 /** Wiki title → URL slug. Reversible enough for our routing needs. */

@@ -1,5 +1,5 @@
 import type { Loader, LoaderContext } from 'astro/loaders';
-import { MediaWikiClient, rewriteHtml, toSlug, type MwPageStub } from '../lib/mediawiki';
+import { MediaWikiClient, rewriteHtml, toSlug, sleep, type MwPageStub } from '../lib/mediawiki';
 import { GAMES } from '../lib/games';
 
 /**
@@ -40,8 +40,16 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
       // to compare against. One flaky wiki must not sink the other five,
       // and must not look like every one of its pages got deleted upstream.
       const failedGames = new Set<string>();
+      let firstWiki = true;
 
       for (const [gameSlug, endpoint] of Object.entries(options.endpoints)) {
+        // A cold build hits every wiki's listing pass back-to-back — six
+        // distinct hosts, but likely fronted by the same shared Cloudflare,
+        // so a burst across all of them can still read as one client
+        // hammering the edge. A short pause between wikis spreads that out.
+        if (!firstWiki) await sleep(1500);
+        firstWiki = false;
+
         try {
           const client = new MediaWikiClient({
             endpoint,
