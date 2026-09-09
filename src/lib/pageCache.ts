@@ -23,6 +23,22 @@
  */
 
 import { Redis } from '@upstash/redis';
+import { waitUntil } from '@vercel/functions';
+
+/**
+ * `waitUntil` requires a Vercel runtime execution context; calling it
+ * anywhere that context isn't present throws synchronously. A background
+ * cache refresh is an optimization, never worth crashing the page over, so
+ * this swallows that failure (and just lets the promise run un-awaited,
+ * best-effort, instead).
+ */
+export function safeWaitUntil(promise: Promise<unknown>): void {
+  try {
+    waitUntil(promise);
+  } catch {
+    promise.catch(() => {});
+  }
+}
 
 const FRESH_MS = 60 * 60 * 1000; // 1h: served with no revalidation at all
 const STALE_TTL_SECONDS = 30 * 24 * 60 * 60; // 30d: hard expiry in Redis
@@ -59,17 +75,28 @@ export async function getCachedPage(id: string): Promise<{ page: CachedPage; fre
   const redis = getClient();
   if (!redis) return null;
 
-  const page = await redis.get<CachedPage>(`wiki-page:${id}`);
-  if (!page) return null;
-
-  return { page, fresh: Date.now() - page.cachedAt < FRESH_MS };
+  try {
+    const page = await redis.get<CachedPage>(`wiki-page:${id}`);
+    if (!page) return null;
+    return { page, fresh: Date.now() - page.cachedAt < FRESH_MS };
+  } catch (err) {
+    // A cache failure (bad credentials, Redis outage, malformed value) must
+    // degrade to a live Fandom fetch, never take the whole page down — same
+    // principle as the per-wiki try/catch in the content loader.
+    console.error('pageCache: getCachedPage failed, falling back to live fetch', err);
+    return null;
+  }
 }
 
 export async function setCachedPage(id: string, page: Omit<CachedPage, 'cachedAt'>): Promise<void> {
   const redis = getClient();
   if (!redis) return;
 
-  await redis.set(`wiki-page:${id}`, { ...page, cachedAt: Date.now() }, { ex: STALE_TTL_SECONDS });
+  try {
+    await redis.set(`wiki-page:${id}`, { ...page, cachedAt: Date.now() }, { ex: STALE_TTL_SECONDS });
+  } catch (err) {
+    console.error('pageCache: setCachedPage failed, page just won\'t be cached this time', err);
+  }
 }
 
 const NAV_FRESH_MS = 6 * 60 * 60 * 1000; // 6h — nav trees change far less often than articles
@@ -79,15 +106,23 @@ export async function getCachedNav(gameSlug: string) {
   const redis = getClient();
   if (!redis) return null;
 
-  const entry = await redis.get<{ nav: unknown; cachedAt: number }>(`wiki-nav:${gameSlug}`);
-  if (!entry) return null;
-
-  return { nav: entry.nav, fresh: Date.now() - entry.cachedAt < NAV_FRESH_MS };
+  try {
+    const entry = await redis.get<{ nav: unknown; cachedAt: number }>(`wiki-nav:${gameSlug}`);
+    if (!entry) return null;
+    return { nav: entry.nav, fresh: Date.now() - entry.cachedAt < NAV_FRESH_MS };
+  } catch (err) {
+    console.error('pageCache: getCachedNav failed, falling back to live fetch', err);
+    return null;
+  }
 }
 
 export async function setCachedNav(gameSlug: string, nav: unknown): Promise<void> {
   const redis = getClient();
   if (!redis) return;
 
-  await redis.set(`wiki-nav:${gameSlug}`, { nav, cachedAt: Date.now() }, { ex: NAV_TTL_SECONDS });
+  try {
+    await redis.set(`wiki-nav:${gameSlug}`, { nav, cachedAt: Date.now() }, { ex: NAV_TTL_SECONDS });
+  } catch (err) {
+    console.error('pageCache: setCachedNav failed, nav just won\'t be cached this time', err);
+  }
 }

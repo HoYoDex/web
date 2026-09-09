@@ -3,8 +3,7 @@ import Base from '../../layouts/Base.astro';
 import { getCollection, getEntry } from 'astro:content';
 import { GAMES } from '../../lib/games';
 import { fetchLiveNavigation } from '../../lib/navParser';
-import { waitUntil } from '@vercel/functions';
-import { getCachedPage, setCachedPage, getCachedNav, setCachedNav } from '../../lib/pageCache';
+import { getCachedPage, setCachedPage, getCachedNav, setCachedNav, safeWaitUntil } from '../../lib/pageCache';
 
 export const prerender = false;
 
@@ -35,9 +34,9 @@ const cachedNav = await getCachedNav(game.slug);
 let liveNav = (cachedNav?.nav as Awaited<ReturnType<typeof fetchLiveNavigation>>) ?? undefined;
 if (!liveNav) {
   liveNav = await fetchLiveNavigation(game.slug);
-  waitUntil(setCachedNav(game.slug, liveNav));
+  safeWaitUntil(setCachedNav(game.slug, liveNav));
 } else if (!cachedNav!.fresh) {
-  waitUntil(fetchLiveNavigation(game.slug).then((fresh) => setCachedNav(game.slug, fresh)));
+  safeWaitUntil(fetchLiveNavigation(game.slug).then((fresh) => setCachedNav(game.slug, fresh)));
 }
 
 // Article content: same durable-cache-first pattern. A known page's HTML
@@ -74,7 +73,7 @@ if (cached) {
     // Serve the stale copy now; refresh it for the next visitor without
     // making this one wait on a live Fandom round-trip.
     const title = page?.data.title ?? cached.page.displayTitle;
-    waitUntil(fetchAndCache(title).catch(() => {}));
+    safeWaitUntil(fetchAndCache(title).catch(() => {}));
   }
 } else {
   let title = page?.data.title;
