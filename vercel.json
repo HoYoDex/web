@@ -1,7 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
-    { "source": "/(.*)", "has": [{ "type": "host", "value": "hoyodex.com" }], "destination": "https://www.hoyodex.com/$1", "permanent": true }
+    { "source": "/(.*)", "has": [{ "type": "host", "value": "hoyodex.com" }], "destination": "https://www.hoyodex.com/$1", "permanent": true },
+    { "source": "/youtube", "destination": "https://youtube.com/@hoyodex", "permanent": false },
+    { "source": "/instagram", "destination": "https://instagram.com/hoyodex", "permanent": false },
+    { "source": "/twitter", "destination": "https://x.com/hoyodex_", "permanent": false },
+    { "source": "/x", "destination": "https://x.com/hoyodex_", "permanent": false },
+    { "source": "/linkedin", "destination": "https://linkedin.com/company/hoyodex", "permanent": false },
+    { "source": "/tiktok", "destination": "https://tiktok.com/@hoyodex", "permanent": false }
   ],
   "headers": [
     {
