@@ -1,0 +1,33 @@
+---
+import type { Game } from '../../lib/games';
+
+interface Props { game: Game }
+const { game } = Astro.props;
+---
+
+<div
+  class="game-hero motif-urban-grid border-b border-void-700 bg-void-900"
+  style={`--accent:${game.accent};--accent2:${game.secondaryAccent}`}
+>
+  <div class="relative z-10 mx-auto max-w-6xl px-6 pt-10 pb-0">
+    <div class="mb-4 flex items-end justify-between gap-4">
+      <div>
+        <a href={`/games/${game.slug}`} class="group flex items-center gap-2.5">
+          <svg class="h-7 w-7 shrink-0 -rotate-6" fill="none" stroke={game.accent} viewBox="0 0 24 24" set:html={game.icon}></svg>
+          <span class="relative font-display text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl">
+            {game.name} Wiki
+            {/* Glitch-offset ghost copy — a subtle nod to ZZZ's broadcast/monitor motif. */}
+            <span aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10 translate-x-[2px] opacity-0 transition-opacity duration-150 group-hover:opacity-60" style={`color:${game.accent}`}>{game.name} Wiki</span>
+          </span>
+        </a>
+        <p class="mt-1.5 flex max-w-md items-center gap-1.5 text-sm italic text-zinc-400">
+          <span class="inline-block h-1 w-1 rounded-full" style={`background:${game.secondaryAccent}`}></span>
+          &ldquo;{game.tagline}&rdquo;
+        </p>
+      </div>
+      <a href={`/search?q=&game=${game.slug}`} class="mb-1 flex shrink-0 items-center gap-1 rounded-lg border border-void-600 bg-void-900/60 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-300 transition-colors hover:border-[var(--accent)] hover:text-white">
+        Explore →
+      </a>
+    </div>
+  </div>
+</div>

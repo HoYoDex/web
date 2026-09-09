@@ -1,0 +1,35 @@
+---
+import type { Game } from '../../lib/games';
+
+interface Props { game: Game }
+const { game } = Astro.props;
+---
+
+<div
+  class="game-hero motif-astral-rail border-b border-void-700 bg-void-900"
+  style={`--accent:${game.accent};--accent2:${game.secondaryAccent}`}
+>
+  <div class="relative z-10 mx-auto max-w-6xl px-6 pt-10 pb-0">
+    {/* A single departures-board style line, standing in for the Express's manifest. */}
+    <div class="mb-3 flex items-center gap-2 font-mono text-[0.65rem] uppercase tracking-[0.2em] text-zinc-500">
+      <span class="h-1.5 w-1.5 animate-pulse rounded-full" style={`background:${game.accent}`}></span>
+      Now boarding
+      <span class="h-px flex-1" style={`background:linear-gradient(90deg, ${game.accent}66, transparent)`}></span>
+    </div>
+
+    <div class="mb-4 flex items-end justify-between gap-4">
+      <div>
+        <a href={`/games/${game.slug}`} class="flex items-center gap-3">
+          <svg class="h-8 w-8 shrink-0" fill="none" stroke={game.accent} viewBox="0 0 24 24" set:html={game.icon}></svg>
+          <span class="font-display text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl">
+            {game.name} Wiki
+          </span>
+        </a>
+        <p class="mt-1.5 max-w-md text-sm italic text-zinc-400">&ldquo;{game.tagline}&rdquo;</p>
+      </div>
+      <a href={`/search?q=&game=${game.slug}`} class="mb-1 flex shrink-0 items-center gap-1 rounded-lg border border-void-600 bg-void-900/60 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-300 transition-colors hover:border-[var(--accent)] hover:text-white">
+        Explore →
+      </a>
+    </div>
+  </div>
+</div>

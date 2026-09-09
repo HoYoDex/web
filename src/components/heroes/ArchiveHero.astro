@@ -1,0 +1,33 @@
+---
+import type { Game } from '../../lib/games';
+
+interface Props { game: Game }
+const { game } = Astro.props;
+const compact = game.tier === 'legacy';
+---
+
+<div
+  class:list={['game-hero motif-archive border-b border-void-700 bg-void-900', compact && 'opacity-90']}
+  style={`--accent:${game.accent};--accent2:${game.secondaryAccent}`}
+>
+  <div class="relative z-10 mx-auto max-w-6xl px-6 pt-8 pb-0">
+    <div class="mb-4 flex items-end justify-between gap-4">
+      <div>
+        {compact && (
+          <span class="mb-2 inline-flex items-center gap-1.5 rounded-full border border-void-600 bg-void-850 px-2.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wider text-zinc-500">
+            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" set:html={game.icon}></svg>
+            Predecessor title
+          </span>
+        )}
+        <a href={`/games/${game.slug}`} class="flex items-center gap-2.5">
+          <svg class="h-7 w-7 shrink-0" fill="none" stroke={game.accent} viewBox="0 0 24 24" set:html={game.icon}></svg>
+          <span class="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">{game.name} Wiki</span>
+        </a>
+        <p class="mt-1.5 max-w-md text-xs italic text-zinc-500">&ldquo;{game.tagline}&rdquo;</p>
+      </div>
+      <a href={`/search?q=&game=${game.slug}`} class="mb-1 hidden shrink-0 items-center gap-1 rounded-lg border border-void-600 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-400 transition-colors hover:border-[var(--accent)] hover:text-zinc-100 sm:flex">
+        Explore →
+      </a>
+    </div>
+  </div>
+</div>

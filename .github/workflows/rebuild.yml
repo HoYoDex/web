@@ -1,0 +1,26 @@
+name: Scheduled rebuild
+
+# Wiki article pages render on demand (see ARCHITECTURE.md), but the home
+# page, /games listings, and the search index are static and only refresh on
+# a new deployment. This triggers a redeploy on a schedule so those stay
+# close to current without anyone having to push a commit. Rebuilds are
+# cheap: the content loader only re-parses pages whose revision actually
+# changed since the last build.
+on:
+  schedule:
+    - cron: '0 * * * *' # hourly
+  workflow_dispatch: {}
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hit the Vercel deploy hook
+        run: |
+          if [ -z "$DEPLOY_HOOK_URL" ]; then
+            echo "VERCEL_DEPLOY_HOOK_URL secret is not set — see VERCEL.md." >&2
+            exit 1
+          fi
+          curl --fail --silent --show-error -X POST "$DEPLOY_HOOK_URL"
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}

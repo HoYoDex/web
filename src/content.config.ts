@@ -1,14 +1,13 @@
 import { defineCollection, z } from 'astro:content';
 import { mediaWikiLoader } from './loaders/mediawiki';
+import { GAMES } from './lib/games';
 
-const WIKI_ENDPOINTS: Record<string, string> = {
-  'genshin-impact': 'https://genshin-impact.fandom.com',
-  'honkai-star-rail': 'https://honkai-star-rail.fandom.com',
-  'zenless-zone-zero': 'https://zenless-zone-zero.fandom.com',
-  'honkai-impact-3rd': 'https://honkaiimpact3.fandom.com',
-  'tears-of-themis': 'https://tearsofthemis.fandom.com',
-  'guns-girlz': 'https://houkai2nd.fandom.com',
-};
+// One loader endpoint per distinct wiki. `honkai-gakuen` shares
+// `guns-girlz`'s endpoint (see games.ts) and is deliberately excluded here —
+// ingesting it again would duplicate the same pages under the wrong game.
+const WIKI_ENDPOINTS: Record<string, string> = Object.fromEntries(
+  GAMES.filter((g) => g.slug !== 'honkai-gakuen').map((g) => [g.slug, g.endpoint])
+);
 
 const wiki = defineCollection({
   loader: mediaWikiLoader({

@@ -1,0 +1,52 @@
+---
+import type { Game } from '../../lib/games';
+
+interface Props { game: Game }
+const { game } = Astro.props;
+
+// A small cluster of elemental motes orbiting the title — Teyvat's seven
+// elements as a compact, non-literal glyph rather than borrowed art.
+const motes = [
+  { x: 6, y: 18, delay: '0s' },
+  { x: 88, y: 10, delay: '.6s' },
+  { x: 94, y: 62, delay: '1.2s' },
+  { x: 14, y: 78, delay: '1.8s' },
+];
+---
+
+<div
+  class="game-hero motif-elemental border-b border-void-700 bg-void-900"
+  style={`--accent:${game.accent};--accent2:${game.secondaryAccent}`}
+>
+  {motes.map((m) => (
+    <span
+      class="pointer-events-none absolute z-0 h-1.5 w-1.5 rounded-full opacity-70 [animation:float_6s_ease-in-out_infinite]"
+      style={`left:${m.x}%;top:${m.y}%;background:${game.accent};box-shadow:0 0 14px 3px ${game.accent};animation-delay:${m.delay}`}
+    ></span>
+  ))}
+
+  <div class="relative z-10 mx-auto max-w-6xl px-6 pt-10 pb-0">
+    <div class="mb-4 flex items-end justify-between gap-4">
+      <div>
+        <span class="mb-2 inline-flex items-center gap-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em]" style={`color:${game.accent}`}>
+          <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" set:html={game.icon}></svg>
+          Teyvat Archive
+        </span>
+        <a href={`/games/${game.slug}`} class="font-display text-4xl font-bold tracking-tight text-white drop-shadow-md sm:text-5xl">
+          {game.name} Wiki
+        </a>
+        <p class="mt-1.5 max-w-md text-sm italic text-zinc-400">&ldquo;{game.tagline}&rdquo;</p>
+      </div>
+      <a href={`/search?q=&game=${game.slug}`} class="mb-1 flex shrink-0 items-center gap-1 rounded-lg border border-void-600 bg-void-900/60 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-300 transition-colors hover:border-[var(--accent)] hover:text-white">
+        Explore →
+      </a>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+</style>

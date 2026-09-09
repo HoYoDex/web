@@ -156,6 +156,23 @@ export class MediaWikiClient {
     return out;
   }
 
+  /**
+   * Best-effort title resolution for a page we don't have a stored slug for
+   * (e.g. one created upstream since the last build). Cheap, Fandom-cached
+   * full-text search — not exact-match, so callers should treat a hit as a
+   * "close enough" title rather than a guaranteed one.
+   */
+  async searchTitle(query: string): Promise<string | null> {
+    const json = await this.#get({
+      action: 'query',
+      list: 'search',
+      srsearch: query,
+      srnamespace: 0,
+      srlimit: 1,
+    });
+    return json.query?.search?.[0]?.title ?? null;
+  }
+
   /** Fully rendered HTML for one page. */
   async parsePage(title: string): Promise<MwParsedPage> {
     const json = await this.#get({

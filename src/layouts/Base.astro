@@ -3,6 +3,7 @@ import '../styles/global.css';
 
 import type { Game, NavItem } from '../lib/games';
 import NavDropdown from '../components/NavDropdown.astro';
+import GameHero from '../components/GameHero.astro';
 
 interface Props {
   title: string;
@@ -83,39 +84,26 @@ const navLinks = [
     <div class="flex min-w-0 flex-1 flex-col pl-16">
       {/* HEADER AREA */}
       {game ? (
-        <header class="relative border-b border-void-700 bg-void-900 shadow-md z-40">
-          <div class="absolute inset-0 z-0 overflow-hidden opacity-30">
-            <div class="absolute inset-0 bg-gradient-to-r from-void-900 via-void-900/80 to-transparent"></div>
-            <div class="h-full w-full bg-gradient-to-b from-transparent to-void-900" style={`background-image: radial-gradient(circle at 100% 0%, ${game.accent}40 0%, transparent 60%);`}></div>
-          </div>
-          <div class="relative z-10 mx-auto px-6 pt-8 pb-0" class:list={[wide ? "max-w-[100rem]" : "max-w-6xl"]}>
-            <div class="mb-4 flex items-end justify-between">
-              <div>
-                <a href={`/games/${game.slug}`} class="font-display text-4xl font-bold tracking-tight text-white drop-shadow-md">{game.name} Wiki</a>
-                <div class="mt-1 flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  <a href={`/search?q=&game=${game.slug}`} class="flex items-center gap-1 hover:text-zinc-200">
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                    Explore
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* HORIZONTAL NAVBAR WITH DROPDOWNS */}
-            <nav class="flex items-center gap-1">
-              <a href={`/games/${game.slug}`} class="border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:text-white hover:border-astral-400">Home</a>
-              {currentNav?.map(menu => (
-                <div class="group relative">
-                  <button class="flex items-center gap-1 border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-zinc-300 transition-colors group-hover:border-astral-400 group-hover:text-white">
-                    {menu.label}
-                    <svg class="h-3 w-3 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                  </button>
-                  <div class="pointer-events-none absolute left-0 top-full z-50 mt-0 w-48 -translate-y-2 opacity-0 shadow-xl transition-all group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
-                    <NavDropdown items={menu.items || []} gameSlug={game.slug} />
+        <header class="relative z-40 shadow-md" style={`--accent:${game.accent}`}>
+          <GameHero game={game} />
+          <div class="border-b border-void-700 bg-void-900">
+            <div class="mx-auto px-6" class:list={[wide ? "max-w-[100rem]" : "max-w-6xl"]}>
+              {/* HORIZONTAL NAVBAR WITH DROPDOWNS */}
+              <nav class="flex items-center gap-1">
+                <a href={`/games/${game.slug}`} class="border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-zinc-300 transition-colors hover:border-[var(--accent)] hover:text-white">Home</a>
+                {currentNav?.map(menu => (
+                  <div class="group relative">
+                    <button class="flex items-center gap-1 border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-zinc-300 transition-colors group-hover:border-[var(--accent)] group-hover:text-white">
+                      {menu.label}
+                      <svg class="h-3 w-3 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="pointer-events-none absolute left-0 top-full z-50 mt-0 w-48 -translate-y-2 opacity-0 shadow-xl transition-all group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100">
+                      <NavDropdown items={menu.items || []} gameSlug={game.slug} accent={game.accent} />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </nav>
+                ))}
+              </nav>
+            </div>
           </div>
         </header>
       ) : (

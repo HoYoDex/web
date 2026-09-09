@@ -1,16 +1,38 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { GAMES } from '../../lib/games';
+import { GAMES, type Game } from '../../lib/games';
+
+const TIER_COPY: Record<Game['tier'], { label: string; blurb: string }> = {
+  flagship: { label: 'Flagship', blurb: 'In active development, with a fully themed wiki.' },
+  active: { label: 'Active', blurb: 'Still updated by its community.' },
+  legacy: { label: 'Legacy', blurb: 'Predecessor titles, kept for the archive.' },
+};
+
+const tiers: Game['tier'][] = ['flagship', 'active', 'legacy'];
+const grouped = tiers.map((tier) => ({ tier, games: GAMES.filter((g) => g.tier === tier) })).filter((t) => t.games.length);
 ---
 <Base title="Games" description="Every HoYoverse game indexed on HoYoDex.">
   <h1 class="font-display text-3xl font-bold">Games</h1>
-  <div class="mt-6 grid gap-4 sm:grid-cols-2">
-    {GAMES.map((g) => (
-      <a href={`/games/${g.slug}`} class="group rounded-xl border border-void-700 bg-void-900/50 p-6 transition-all hover:-translate-y-0.5 hover:border-[var(--a)]" style={`--a:${g.accent}`}>
-        <h2 class="font-display text-xl font-semibold group-hover:text-[var(--a)]">{g.name}</h2>
-        <p class="mt-1 text-xs text-zinc-500">Released {g.released}</p>
-        <p class="mt-3 text-sm text-zinc-400">{g.blurb}</p>
-      </a>
-    ))}
-  </div>
+  <p class="mt-2 max-w-xl text-sm text-zinc-500">Each wiki is themed to its game — flagship titles get a fully bespoke identity, legacy titles a shared archive treatment.</p>
+
+  {grouped.map(({ tier, games }) => (
+    <section class="mt-10">
+      <div class="mb-4 flex items-baseline gap-3 border-b border-void-700/50 pb-2">
+        <h2 class="font-display text-lg font-bold text-zinc-100">{TIER_COPY[tier].label}</h2>
+        <span class="text-xs text-zinc-500">{TIER_COPY[tier].blurb}</span>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        {games.map((g) => (
+          <a href={`/games/${g.slug}`} class="group flex items-start gap-3 rounded-xl border border-void-700 bg-void-900/50 p-6 transition-all hover:-translate-y-0.5 hover:border-[var(--a)]" style={`--a:${g.accent}`}>
+            <svg class="mt-0.5 h-6 w-6 shrink-0 transition-colors" fill="none" stroke={g.accent} viewBox="0 0 24 24" set:html={g.icon}></svg>
+            <div class="min-w-0">
+              <h3 class="font-display text-xl font-semibold group-hover:text-[var(--a)]">{g.name}</h3>
+              <p class="mt-1 text-xs text-zinc-500">Released {g.released}</p>
+              <p class="mt-3 text-sm text-zinc-400">{g.blurb}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  ))}
 </Base>

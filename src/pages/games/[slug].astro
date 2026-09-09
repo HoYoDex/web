@@ -50,10 +50,27 @@ for (const p of pages) {
 const showFallback = categoryGroups.size === 0 && pages.length > 0;
 ---
 <Base title={game.name} description={game.blurb} wide={true} game={game} nav={liveNav}>
+  {game.tier === 'flagship' && pages.length > 0 && (
+    <dl class="mb-2 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-void-700 bg-void-700 sm:grid-cols-4">
+      <div class="bg-void-900/80 px-4 py-4">
+        <dt class="text-xs uppercase tracking-wider text-zinc-500">Pages indexed</dt>
+        <dd class="mt-1 font-display text-xl font-bold text-zinc-100">{pages.length.toLocaleString()}</dd>
+      </div>
+      <div class="bg-void-900/80 px-4 py-4">
+        <dt class="text-xs uppercase tracking-wider text-zinc-500">Released</dt>
+        <dd class="mt-1 font-display text-xl font-bold text-zinc-100">{game.released.slice(0, 4)}</dd>
+      </div>
+      <div class="bg-void-900/80 px-4 py-4 col-span-2">
+        <dt class="text-xs uppercase tracking-wider text-zinc-500">Categories featured</dt>
+        <dd class="mt-1 font-display text-xl font-bold text-zinc-100">{categoryGroups.size}</dd>
+      </div>
+    </dl>
+  )}
+
   {pages.length === 0 ? (
     <p class="mt-10 rounded-xl border border-dashed border-void-700 p-12 text-center text-zinc-500">
       No pages indexed for this game yet.
-      <br/><a href={`https://${game.slug}.fandom.com`} class="mt-2 inline-block font-medium hover:underline" style={`color:${game.accent}`} rel="noopener">Help write them on the wiki.</a>
+      <br/><a href={game.endpoint} class="mt-2 inline-block font-medium hover:underline" style={`color:${game.accent}`} rel="noopener">Help write them on the wiki.</a>
     </p>
   ) : showFallback ? (
     <div class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -62,7 +79,7 @@ const showFallback = categoryGroups.size === 0 && pages.length > 0;
       ))}
     </div>
   ) : (
-    <div class="space-y-16 mt-4">
+    <div class="space-y-16 mt-8">
       {FEATURED_CATEGORIES.filter(c => categoryGroups.has(c)).map(cat => {
         const groupPages = categoryGroups.get(cat)!;
         return (

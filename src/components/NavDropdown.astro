@@ -4,15 +4,16 @@ import type { NavItem } from '../lib/games';
 interface Props {
   items: NavItem[];
   gameSlug: string;
+  accent?: string;
 }
 
-const { items, gameSlug } = Astro.props;
+const { items, gameSlug, accent = '#38bdf8' } = Astro.props;
 ---
 
-<div class="rounded-lg border border-void-700 bg-void-850 py-1 shadow-2xl backdrop-blur-xl">
+<div class="rounded-lg border border-void-700 bg-void-850 py-1 shadow-2xl backdrop-blur-xl" style={`--accent:${accent}`}>
   {items.map(item => {
     const hasChildren = item.items && item.items.length > 0;
-    
+
     if (hasChildren) {
       return (
         <div class="group/sub relative">
@@ -20,16 +21,16 @@ const { items, gameSlug } = Astro.props;
             {item.label}
             <svg class="h-3 w-3 -rotate-90 transition-transform group-hover/sub:rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
-          
+
           <div class="pointer-events-none absolute left-full top-0 z-50 w-48 -translate-x-2 opacity-0 shadow-xl transition-all group-hover/sub:pointer-events-auto group-hover/sub:translate-x-0 group-hover/sub:opacity-100">
-            <Astro.self items={item.items!} gameSlug={gameSlug} />
+            <Astro.self items={item.items!} gameSlug={gameSlug} accent={accent} />
           </div>
         </div>
       );
     }
-    
+
     return (
-      <a href={`/search?q=${encodeURIComponent(item.query || '')}&game=${gameSlug}`} class="block px-4 py-2 text-sm text-zinc-300 hover:bg-void-700 hover:text-white">
+      <a href={`/search?q=${encodeURIComponent(item.query || '')}&game=${gameSlug}`} class="block border-l-2 border-transparent px-4 py-2 text-sm text-zinc-300 transition-colors hover:border-[var(--accent)] hover:bg-void-700 hover:text-white">
         {item.label}
       </a>
     );

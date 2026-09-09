@@ -98,6 +98,97 @@ body {
 
 .rule { height: 1px; background: linear-gradient(90deg, var(--color-void-600), transparent); }
 
+/* ── Per-game hero motifs ─────────────────────────────────────────────────
+   Each reads `--accent`/`--accent2` set inline per game. No hotlinked art —
+   these are pure CSS/SVG so every game gets a distinct hero without taking
+   on image licensing or a proxy. `.game-hero` is the shared positioning
+   context; `.motif-*` is the per-game background treatment. */
+.game-hero { position: relative; overflow: hidden; isolation: isolate; }
+
+.motif-elemental::before {
+  content: ''; position: absolute; inset: -20% -10% auto auto; z-index: -1;
+  width: 34rem; height: 34rem;
+  background: conic-gradient(from 0deg at 50% 50%,
+    color-mix(in oklab, var(--accent) 55%, transparent),
+    transparent 20%, color-mix(in oklab, var(--accent2) 45%, transparent) 40%,
+    transparent 60%, color-mix(in oklab, var(--accent) 45%, transparent) 80%, transparent);
+  filter: blur(40px); opacity: .35; animation: spin-slow 40s linear infinite;
+}
+
+.motif-astral-rail::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image: repeating-linear-gradient(115deg,
+    color-mix(in oklab, var(--accent) 22%, transparent) 0 2px, transparent 2px 64px);
+  mask-image: linear-gradient(115deg, #000 0%, transparent 65%);
+}
+.motif-astral-rail::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image:
+    radial-gradient(1.5px 1.5px at 20% 30%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 60% 15%, #fff, transparent),
+    radial-gradient(1px 1px at 80% 50%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 40% 70%, #fff, transparent),
+    radial-gradient(1px 1px at 90% 80%, #fff, transparent);
+  opacity: .5;
+}
+
+.motif-urban-grid::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--accent) 30%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--accent2) 22%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 90% 70% at 80% 0%, #000 30%, transparent 75%);
+}
+.motif-urban-grid::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: repeating-linear-gradient(0deg,
+    color-mix(in oklab, var(--accent2) 8%, transparent) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay; opacity: .4;
+}
+
+.motif-valkyrie::before {
+  content: ''; position: absolute; inset: -10% -5% auto auto; z-index: -1;
+  width: 30rem; height: 30rem;
+  background: radial-gradient(circle at 70% 30%,
+    color-mix(in oklab, var(--accent) 30%, transparent), transparent 65%);
+  filter: blur(30px);
+}
+.motif-valkyrie::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image: repeating-linear-gradient(70deg,
+    color-mix(in oklab, var(--accent2) 12%, transparent) 0 1px, transparent 1px 22px);
+  mask-image: linear-gradient(70deg, transparent 20%, #000 60%, transparent 90%);
+}
+
+.motif-detective::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--accent) 14%, transparent), transparent 55%);
+}
+.motif-detective::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; z-index: -1; height: 3px;
+  background: repeating-linear-gradient(90deg, var(--accent) 0 10px, transparent 10px 16px);
+  opacity: .55;
+}
+
+.motif-archive::before {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--accent) 10%, transparent), transparent 70%);
+}
+.motif-archive::after {
+  content: ''; position: absolute; inset: 0; z-index: -1;
+  background-image: repeating-linear-gradient(45deg,
+    color-mix(in oklab, var(--color-void-500) 30%, transparent) 0 1px, transparent 1px 14px);
+  opacity: .25;
+}
+
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .motif-elemental::before { animation: none; }
+}
+
 /* ── Rendered MediaWiki HTML ─────────────────────────────────────────────
    Upstream markup is arbitrary, so this is defensive: everything wide is
    forced to scroll inside its own box rather than stretching the page. */

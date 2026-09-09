@@ -1,0 +1,20 @@
+---
+import type { Game } from '../lib/games';
+import GenshinHero from './heroes/GenshinHero.astro';
+import StarRailHero from './heroes/StarRailHero.astro';
+import ZzzHero from './heroes/ZzzHero.astro';
+import ArchiveHero from './heroes/ArchiveHero.astro';
+
+interface Props { game: Game }
+const { game } = Astro.props;
+---
+
+{game.slug === 'genshin-impact' ? (
+  <GenshinHero game={game} />
+) : game.slug === 'honkai-star-rail' ? (
+  <StarRailHero game={game} />
+) : game.slug === 'zenless-zone-zero' ? (
+  <ZzzHero game={game} />
+) : (
+  <ArchiveHero game={game} />
+)}

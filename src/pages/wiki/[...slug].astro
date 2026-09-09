@@ -11,41 +11,48 @@ export async function getStaticPaths() {
   return pages.map((page) => ({ params: { slug: page.id } }));
 }
 
+import { MediaWikiClient, rewriteHtml } from '../../lib/mediawiki';
+
 const { slug } = Astro.params;
 const page = await getEntry('wiki', slug!);
-if (!page) return Astro.redirect('/404');
 
-const game = GAMES.find((g) => g.slug === page.data.game);
-const liveNav = game ? await fetchLiveNavigation(game.slug) : undefined;
-const endpoint = game ? `https://${game.slug}.fandom.com` : 'https://genshin-impact.fandom.com'; // fallback if not found in GAMES but shouldn't happen
-// Fandom handles tears-of-themis differently so we'd need WIKI_ENDPOINTS, let's just import it or extract from sourceUrl
-const url = new URL(page.data.sourceUrl);
-const origin = url.origin;
+// The slug is always `${gameSlug}/${toSlug(title)}`, so the game is always
+// resolvable even when the page itself isn't in the build-time index yet
+// (e.g. it was created upstream since the last build).
+const gameSlug = page?.data.game ?? slug!.split('/')[0];
+const game = GAMES.find((g) => g.slug === gameSlug);
+if (!game) return Astro.redirect('/404');
 
-import { MediaWikiClient, rewriteHtml } from '../../lib/mediawiki';
-const client = new MediaWikiClient({ endpoint: origin, userAgent: 'HoYoDexBot/0.1 (https://www.hoyodex.com; tech@hoyodex.com)' });
-const parsed = await client.parsePage(page.data.title);
-const html = rewriteHtml(parsed.html, origin, page.data.game);
+const liveNav = await fetchLiveNavigation(game.slug);
+const client = new MediaWikiClient({ endpoint: game.endpoint, userAgent: 'HoYoDexBot/0.1 (https://www.hoyodex.com; tech@hoyodex.com)' });
+
+let title = page?.data.title;
+if (!title) {
+  // Collection miss: `toSlug` is lossy, so we can't reconstruct the exact
+  // title from the URL slug — resolve it via a cheap, Fandom-cached search
+  // instead, then render exactly like a known page.
+  const guess = slug!.slice(gameSlug.length + 1).replace(/-/g, ' ');
+  title = (await client.searchTitle(guess)) ?? undefined;
+  if (!title) return Astro.redirect('/404');
+}
+
+const parsed = await client.parsePage(title);
+const html = rewriteHtml(parsed.html, game.endpoint, game.slug);
 const toc = parsed.sections.filter((s: any) => s.level <= 3);
 
+const displayTitle = page?.data.displayTitle ?? parsed.displaytitle;
+const updated = page?.data.updated ?? new Date().toISOString();
+const sourceUrl = page?.data.sourceUrl ?? `${game.endpoint}/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
+
 Astro.response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
-const FEATURED_CATEGORIES = [
-  'Playable Characters',
-  'Characters',
-  'Weapons',
-  'Artifacts',
-  'Locations',
-  'Enemies',
-  'Quests'
-];
 ---
 
-<Base title={page.data.displayTitle} description={`${page.data.displayTitle} — HoYoDex`} sourceUrl={page.data.sourceUrl} wide={true} game={game} nav={liveNav}>
+<Base title={displayTitle} description={`${displayTitle} — HoYoDex`} sourceUrl={sourceUrl} wide={true} game={game} nav={liveNav}>
   <div class="flex flex-col gap-8 xl:flex-row xl:items-start">
     {/* MAIN CONTENT */}
     <article class="min-w-0 flex-1 rounded-2xl border border-void-700 bg-void-900/40 p-6 backdrop-blur-sm sm:p-10 shadow-2xl shadow-void-950/50">
-      <h1 class="font-display text-4xl font-bold tracking-tight sm:text-5xl">{page.data.displayTitle}</h1>
-      <p class="mt-3 text-sm text-zinc-500">Last updated {page.data.updated.slice(0, 10)}</p>
+      <h1 class="font-display text-4xl font-bold tracking-tight sm:text-5xl">{displayTitle}</h1>
+      <p class="mt-3 text-sm text-zinc-500">Last updated {updated.slice(0, 10)}</p>
       
       <div class="wiki-body mt-8" set:html={html}></div>
 

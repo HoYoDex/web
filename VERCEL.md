@@ -50,7 +50,20 @@ repeat-request caching for these automatically; nothing extra to configure.
 ## Content freshness
 
 Unlike a fully static build, SSR pages fetch on request, so wiki edits appear
-without a redeploy for those routes. Statically-generated routes (the
-homepage, game listings, the search index) still only refresh on a new
-deployment — trigger one manually or on a schedule if those need to stay current
-between code pushes.
+without a redeploy for those routes, and a brand-new page created upstream
+resolves on first request via a live title search
+(`src/pages/wiki/[...slug].astro`) even before the next build. Statically-
+generated routes (the homepage, game listings, the search index) still only
+refresh on a new deployment.
+
+`.github/workflows/rebuild.yml` triggers a redeploy hourly to keep those
+routes close to current. To wire it up:
+
+1. In the Vercel dashboard: **Project → Settings → Git → Deploy Hooks**,
+   create a hook targeting `main` and copy its URL.
+2. In the GitHub repo: **Settings → Secrets and variables → Actions**, add
+   `VERCEL_DEPLOY_HOOK_URL` with that value.
+
+Without the secret set, the workflow fails loudly (rather than silently
+no-op'ing) so a missing hook doesn't go unnoticed. Adjust the cron schedule
+in the workflow file if hourly is more or less than you need.
