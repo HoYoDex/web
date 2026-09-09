@@ -1,6 +1,7 @@
 import type { Loader, LoaderContext } from 'astro/loaders';
 import { MediaWikiClient, rewriteHtml, toSlug, sleep, type MwPageStub } from '../lib/mediawiki';
 import { GAMES } from '../lib/games';
+import { setCachedPage } from '../lib/pageCache';
 
 /**
  * Bump whenever `rewriteHtml` or the shape of stored data changes.
@@ -113,6 +114,7 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
 
           for (const page of stale) {
             const id = `${gameSlug}/${toSlug(page.title)}`;
+            const sourceUrl = `${endpoint}/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`;
             const data = await parseData({
               id,
               data: {
@@ -125,7 +127,7 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
                 updated: page.touched,
                 categories: categoryMap.get(page.pageid) ?? [],
                 sections: [],
-                sourceUrl: `${endpoint}/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
+                sourceUrl,
               },
             });
 
@@ -135,6 +137,29 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
               digest: generateDigest({ revid: page.revid, v: TRANSFORM_VERSION }),
             });
             done++;
+
+            // Pre-warm the durable page cache from build-time infrastructure
+            // rather than leaving it to whichever visitor happens to hit this
+            // page first at runtime. This matters specifically because build
+            // and serverless-function egress are different IP pools on
+            // Vercel — build has been reliably reaching Fandom even during
+            // stretches where the SSR runtime got rate-limited/blocked, so
+            // warming here makes known pages resilient to that independent
+            // of whether live traffic can reach Fandom at all right now.
+            // One page's parse failure shouldn't lose the rest of the batch.
+            try {
+              const parsed = await client.parsePage(page.title);
+              await setCachedPage(id, {
+                displayTitle: parsed.displaytitle,
+                html: rewriteHtml(parsed.html, endpoint, gameSlug),
+                categories: parsed.categories,
+                sections: parsed.sections.filter((s) => s.level <= 3),
+                sourceUrl,
+                updated: page.touched,
+              });
+            } catch (err) {
+              logger.error(`[${gameSlug}] Failed to pre-warm cache for "${page.title}", it'll fetch live on first visit instead: ${err}`);
+            }
           }
         } catch (err) {
           // A transient failure on one wiki (network blip, Fandom outage)
