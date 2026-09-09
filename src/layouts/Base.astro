@@ -4,6 +4,8 @@ import '../styles/global.css';
 import type { Game, NavItem } from '../lib/games';
 import NavDropdown from '../components/NavDropdown.astro';
 import GameHero from '../components/GameHero.astro';
+import Analytics from '@vercel/analytics/astro';
+import SpeedInsights from '@vercel/speed-insights/astro';
 
 interface Props {
   title: string;
@@ -142,5 +144,7 @@ const navLinks = [
         </div>
       </footer>
     </div>
+    <Analytics />
+    <SpeedInsights />
   </body>
 </html>
