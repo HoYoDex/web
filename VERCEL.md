@@ -44,8 +44,27 @@ Set these under **Project → Settings → Environment Variables**, not in
 
 Wiki article pages (`src/pages/wiki/[...slug].astro`) render on demand via
 Vercel's Node runtime rather than being fully static — see
-[ARCHITECTURE.md](ARCHITECTURE.md) for why. Vercel's edge cache handles
-repeat-request caching for these automatically; nothing extra to configure.
+[ARCHITECTURE.md](ARCHITECTURE.md) for why. With 40k+ articles on some wikis,
+most pages get too little traffic to stay warm in Vercel's own edge cache, so
+without a second cache layer nearly every view would re-fetch from Fandom —
+expensive in function invocations, CPU time, and load on someone else's
+infrastructure.
+
+That second layer is a Redis-backed durable cache
+(`src/lib/pageCache.ts`, via `@upstash/redis`), keyed by page/nav, surviving
+across edges, regions and deploys. A page is served straight from Redis with
+no Fandom call at all once cached; entries older than an hour (articles) or
+six hours (nav trees) are still served instantly but trigger a background
+refresh via `waitUntil` (`@vercel/functions`) so the *next* visitor gets the
+update, without the current request paying for it.
+
+**Setup:** in the Vercel dashboard, **Storage → Create Database → Upstash →
+Redis** (or connect an existing Upstash database), then attach it to this
+project — Vercel wires in `KV_REST_API_URL`/`KV_REST_API_TOKEN` (or
+`UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`, either name is
+supported) automatically, no manual env var entry needed. Until that's done,
+`pageCache.ts` degrades to a no-op — every request live-fetches from Fandom
+exactly like before this cache existed, so the site keeps working either way.
 
 ## Content freshness
 

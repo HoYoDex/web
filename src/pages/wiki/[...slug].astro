@@ -3,6 +3,8 @@ import Base from '../../layouts/Base.astro';
 import { getCollection, getEntry } from 'astro:content';
 import { GAMES } from '../../lib/games';
 import { fetchLiveNavigation } from '../../lib/navParser';
+import { waitUntil } from '@vercel/functions';
+import { getCachedPage, setCachedPage, getCachedNav, setCachedNav } from '../../lib/pageCache';
 
 export const prerender = false;
 
@@ -23,28 +25,74 @@ const gameSlug = page?.data.game ?? slug!.split('/')[0];
 const game = GAMES.find((g) => g.slug === gameSlug);
 if (!game) return Astro.redirect('/404');
 
-const liveNav = await fetchLiveNavigation(game.slug);
 const client = new MediaWikiClient({ endpoint: game.endpoint, userAgent: 'HoYoDexBot/0.1 (https://www.hoyodex.com; tech@hoyodex.com)' });
 
-let title = page?.data.title;
-if (!title) {
-  // Collection miss: `toSlug` is lossy, so we can't reconstruct the exact
-  // title from the URL slug — resolve it via a cheap, Fandom-cached search
-  // instead, then render exactly like a known page.
-  const guess = slug!.slice(gameSlug.length + 1).replace(/-/g, ' ');
-  title = (await client.searchTitle(guess)) ?? undefined;
-  if (!title) return Astro.redirect('/404');
+// Nav tree: durable cache first (survives across edges/regions/deploys,
+// unlike relying on the function staying warm), live fetch only on a miss
+// or when the cached copy has aged past NAV_FRESH — served stale
+// immediately either way, refreshed in the background.
+const cachedNav = await getCachedNav(game.slug);
+let liveNav = (cachedNav?.nav as Awaited<ReturnType<typeof fetchLiveNavigation>>) ?? undefined;
+if (!liveNav) {
+  liveNav = await fetchLiveNavigation(game.slug);
+  waitUntil(setCachedNav(game.slug, liveNav));
+} else if (!cachedNav!.fresh) {
+  waitUntil(fetchLiveNavigation(game.slug).then((fresh) => setCachedNav(game.slug, fresh)));
 }
 
-const parsed = await client.parsePage(title);
-const html = rewriteHtml(parsed.html, game.endpoint, game.slug);
-const toc = parsed.sections.filter((s: any) => s.level <= 3);
+// Article content: same durable-cache-first pattern. A known page's HTML
+// rarely changes, so most requests should never have to touch Fandom at
+// all — the cache is keyed by our own slug, which is stable regardless of
+// whether the title came from the build-time collection or a live search.
+const cached = await getCachedPage(slug!);
 
-const displayTitle = page?.data.displayTitle ?? parsed.displaytitle;
-const updated = page?.data.updated ?? new Date().toISOString();
-const sourceUrl = page?.data.sourceUrl ?? `${game.endpoint}/wiki/${encodeURIComponent(title.replace(/ /g, '_'))}`;
+let displayTitle: string;
+let html: string;
+let categories: string[];
+let toc: { level: number; line: string; anchor: string }[];
+let updated: string;
+let sourceUrl: string;
 
-Astro.response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+async function fetchAndCache(resolvedTitle: string) {
+  const parsed = await client.parsePage(resolvedTitle);
+  const rewritten = rewriteHtml(parsed.html, game!.endpoint, game!.slug);
+  const result = {
+    displayTitle: page?.data.displayTitle ?? parsed.displaytitle,
+    html: rewritten,
+    categories: parsed.categories,
+    sections: parsed.sections.filter((s: any) => s.level <= 3),
+    sourceUrl: page?.data.sourceUrl ?? `${game!.endpoint}/wiki/${encodeURIComponent(resolvedTitle.replace(/ /g, '_'))}`,
+    updated: page?.data.updated ?? new Date().toISOString(),
+  };
+  await setCachedPage(slug!, result);
+  return result;
+}
+
+if (cached) {
+  ({ displayTitle, html, categories, sections: toc, sourceUrl, updated } = cached.page);
+  if (!cached.fresh) {
+    // Serve the stale copy now; refresh it for the next visitor without
+    // making this one wait on a live Fandom round-trip.
+    const title = page?.data.title ?? cached.page.displayTitle;
+    waitUntil(fetchAndCache(title).catch(() => {}));
+  }
+} else {
+  let title = page?.data.title;
+  if (!title) {
+    // Collection miss: `toSlug` is lossy, so we can't reconstruct the exact
+    // title from the URL slug — resolve it via a cheap, Fandom-cached search
+    // instead, then render exactly like a known page.
+    const guess = slug!.slice(gameSlug.length + 1).replace(/-/g, ' ');
+    title = (await client.searchTitle(guess)) ?? undefined;
+    if (!title) return Astro.redirect('/404');
+  }
+  ({ displayTitle, html, categories, sections: toc, sourceUrl, updated } = await fetchAndCache(title));
+}
+
+// Still worth a short edge-cache layer in front of the durable cache — a
+// burst of concurrent requests for the same brand-new page shouldn't all
+// miss Redis at once.
+Astro.response.headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
 ---
 
 <Base title={displayTitle} description={`${displayTitle} — HoYoDex`} sourceUrl={sourceUrl} wide={true} game={game} nav={liveNav}>
@@ -56,11 +104,11 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-r
       
       <div class="wiki-body mt-8" set:html={html}></div>
 
-      {parsed.categories.length > 0 && (
+      {categories.length > 0 && (
         <footer class="mt-12 rounded-xl border border-void-700 bg-void-850 p-6">
           <h2 class="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Categories</h2>
           <ul class="flex flex-wrap gap-2">
-            {parsed.categories.map((c: any) => (
+            {categories.map((c: any) => (
               <li class="rounded-full border border-void-600 bg-void-900 px-3 py-1 text-xs font-medium text-zinc-400 shadow-sm transition-colors hover:border-void-500 hover:text-zinc-200">
                 <a href={`/search?q=${encodeURIComponent(c)}&game=${game?.slug}`}>{c}</a>
               </li>
