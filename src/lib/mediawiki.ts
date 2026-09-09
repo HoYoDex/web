@@ -259,6 +259,11 @@ export function rewriteHtml(html: string, endpoint: string, prefix: string): str
       )
       // 4. Wiki content is untrusted-ish and must not break our page.
       .replace(/<a /g, '<a rel="noopener" ')
-      .replace(/<img /g, '<img loading="lazy" decoding="async" ')
+      // Wikia's image CDN hotlink-protects on Referer: a request with no
+      // referrer succeeds, one carrying our origin (which browsers send by
+      // default under our site-wide Referrer-Policy) gets 404'd. Without
+      // this every image renders as a broken box in an actual browser even
+      // though curl -- which never sends a referrer -- looks fine.
+      .replace(/<img /g, '<img loading="lazy" decoding="async" referrerpolicy="no-referrer" ')
   );
 }
