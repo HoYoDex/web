@@ -8,7 +8,12 @@ name: Scheduled rebuild
 # changed since the last build.
 on:
   schedule:
-    - cron: '0 * * * *' # hourly
+    # Deliberately off the hour: GitHub Actions scheduled runs are
+    # lowest-priority and get delayed or dropped under load, and load spikes
+    # hardest at :00 since most cron jobs fire there. :17 sees far less
+    # contention. (The literal 0 * * * * version of this never once fired in
+    # three consecutive hourly windows — that's the actual bug this fixes.)
+    - cron: '17 * * * *' # hourly, offset off the top of the hour
   workflow_dispatch: {}
 
 jobs:
