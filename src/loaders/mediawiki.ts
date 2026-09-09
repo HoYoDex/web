@@ -35,102 +35,118 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
     async load({ store, meta, logger, parseData, generateDigest }: LoaderContext) {
       let done = 0;
       const live = new Set<string>();
+      // Wikis whose listing failed this run — their existing store entries
+      // must survive the prune pass below, since we never got a live list
+      // to compare against. One flaky wiki must not sink the other five,
+      // and must not look like every one of its pages got deleted upstream.
+      const failedGames = new Set<string>();
 
       for (const [gameSlug, endpoint] of Object.entries(options.endpoints)) {
-        const client = new MediaWikiClient({
-          endpoint,
-          userAgent: options.userAgent,
-          concurrency: options.concurrency,
-        });
+        try {
+          const client = new MediaWikiClient({
+            endpoint,
+            userAgent: options.userAgent,
+            concurrency: options.concurrency,
+          });
 
-        logger.info(`[${gameSlug}] Listing pages on ${endpoint}…`);
-        let pages = await client.listPages(options.namespaces ?? [0]);
-        if (options.limit) pages = pages.slice(0, options.limit);
-        logger.info(`[${gameSlug}] Found ${pages.length} pages.`);
+          logger.info(`[${gameSlug}] Listing pages on ${endpoint}…`);
+          let pages = await client.listPages(options.namespaces ?? [0]);
+          if (options.limit) pages = pages.slice(0, options.limit);
+          logger.info(`[${gameSlug}] Found ${pages.length} pages.`);
 
-        // Add to live set
-        for (const p of pages) {
-          live.add(`${gameSlug}/${toSlug(p.title)}`);
-        }
-
-        const stale = pages.filter((p) => {
-          const id = `${gameSlug}/${toSlug(p.title)}`;
-          const existing = store.get(id);
-          return (
-            !existing ||
-            existing.data.revid !== p.revid ||
-            existing.data.transformVersion !== TRANSFORM_VERSION
-          );
-        });
-
-        // Fast category fetch for Game Hubs
-        const FEATURED_CATEGORIES = new Set<string>();
-        const extractQueries = (items: any[]) => {
-          for (const item of items) {
-            if (item.query) FEATURED_CATEGORIES.add(item.query);
-            if (item.items) extractQueries(item.items);
+          // Add to live set
+          for (const p of pages) {
+            live.add(`${gameSlug}/${toSlug(p.title)}`);
           }
-        };
-        
-        const { fetchLiveNavigation } = await import('../lib/navParser');
-        const liveNav = await fetchLiveNavigation(gameSlug);
-        extractQueries(liveNav);
-        
-        const categoryMap = new Map<number, string[]>();
-        if (stale.length > 0) {
-          for (const p of pages) categoryMap.set(p.pageid, []);
-          for (const cat of Array.from(FEATURED_CATEGORIES)) {
-            try {
-              const members = await client.fetchCategoryMembers(cat);
-              for (const id of members) {
-                categoryMap.get(id)?.push(cat);
+
+          const stale = pages.filter((p) => {
+            const id = `${gameSlug}/${toSlug(p.title)}`;
+            const existing = store.get(id);
+            return (
+              !existing ||
+              existing.data.revid !== p.revid ||
+              existing.data.transformVersion !== TRANSFORM_VERSION
+            );
+          });
+
+          // Fast category fetch for Game Hubs
+          const FEATURED_CATEGORIES = new Set<string>();
+          const extractQueries = (items: any[]) => {
+            for (const item of items) {
+              if (item.query) FEATURED_CATEGORIES.add(item.query);
+              if (item.items) extractQueries(item.items);
+            }
+          };
+
+          const { fetchLiveNavigation } = await import('../lib/navParser');
+          const liveNav = await fetchLiveNavigation(gameSlug);
+          extractQueries(liveNav);
+
+          const categoryMap = new Map<number, string[]>();
+          if (stale.length > 0) {
+            for (const p of pages) categoryMap.set(p.pageid, []);
+            for (const cat of Array.from(FEATURED_CATEGORIES)) {
+              try {
+                const members = await client.fetchCategoryMembers(cat);
+                for (const id of members) {
+                  categoryMap.get(id)?.push(cat);
+                }
+              } catch (e) {
+                // Ignore if category doesn't exist on this specific wiki
               }
-            } catch (e) {
-              // Ignore if category doesn't exist on this specific wiki
             }
           }
-        }
 
-        if (!stale.length) {
-          logger.info(`[${gameSlug}] No page changed since the last build — using cache.`);
-          continue;
-        }
-        logger.info(`[${gameSlug}] Updating ${stale.length} page stub(s) in store…`);
+          if (!stale.length) {
+            logger.info(`[${gameSlug}] No page changed since the last build — using cache.`);
+            continue;
+          }
+          logger.info(`[${gameSlug}] Updating ${stale.length} page stub(s) in store…`);
 
-        for (const page of stale) {
-          const id = `${gameSlug}/${toSlug(page.title)}`;
-          const data = await parseData({
-            id,
-            data: {
-              title: page.title,
-              displayTitle: page.title,
-              game: gameSlug,
-              pageid: page.pageid,
-              revid: page.revid,
-              transformVersion: TRANSFORM_VERSION,
-              updated: page.touched,
-              categories: categoryMap.get(page.pageid) ?? [],
-              sections: [],
-              sourceUrl: `${endpoint}/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
-            },
-          });
+          for (const page of stale) {
+            const id = `${gameSlug}/${toSlug(page.title)}`;
+            const data = await parseData({
+              id,
+              data: {
+                title: page.title,
+                displayTitle: page.title,
+                game: gameSlug,
+                pageid: page.pageid,
+                revid: page.revid,
+                transformVersion: TRANSFORM_VERSION,
+                updated: page.touched,
+                categories: categoryMap.get(page.pageid) ?? [],
+                sections: [],
+                sourceUrl: `${endpoint}/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`,
+              },
+            });
 
-          store.set({
-            id,
-            data,
-            digest: generateDigest({ revid: page.revid, v: TRANSFORM_VERSION }),
-          });
-          done++;
+            store.set({
+              id,
+              data,
+              digest: generateDigest({ revid: page.revid, v: TRANSFORM_VERSION }),
+            });
+            done++;
+          }
+        } catch (err) {
+          // A transient failure on one wiki (network blip, Fandom outage)
+          // must not fail the whole build for the other five — same
+          // philosophy as skipping a single unparseable page.
+          failedGames.add(gameSlug);
+          logger.error(`[${gameSlug}] Sync failed, keeping previous data for this wiki: ${err}`);
         }
       }
 
-      // Drop anything deleted upstream since the last build.
+      // Drop anything deleted upstream since the last build — but only for
+      // wikis we actually got a fresh listing from this run.
       for (const id of store.keys()) {
+        const gameSlug = id.split('/')[0];
+        if (failedGames.has(gameSlug)) continue;
         if (!live.has(id)) store.delete(id);
       }
 
       meta.set('lastSync', new Date().toISOString());
-      logger.info(`Synced ${done} page(s) across all wikis.`);
+      logger.info(`Synced ${done} page(s) across all wikis.${failedGames.size ? ` (${failedGames.size} wiki(s) skipped this run: ${[...failedGames].join(', ')})` : ''}`);
     },
   };
 }
