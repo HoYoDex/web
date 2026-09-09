@@ -72,19 +72,29 @@ body {
   mask-image: radial-gradient(ellipse 100% 60% at 50% 0%, #000 20%, transparent 75%);
 }
 
-/* Card: one hairline, one lift, one accent glow. Used everywhere for consistency. */
 .card {
   position: relative;
   border-radius: var(--radius-card);
   border: 1px solid var(--color-void-700);
   background: linear-gradient(180deg, color-mix(in oklab, var(--color-void-800) 80%, transparent), color-mix(in oklab, var(--color-void-900) 85%, transparent));
-  transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+  transition: all .25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), color-mix(in oklab, var(--accent, var(--color-astral-500)) 15%, transparent), transparent 40%);
+  opacity: 0;
+  transition: opacity .3s;
+  pointer-events: none;
 }
 .card:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in oklab, var(--accent, var(--color-astral-500)) 55%, transparent);
-  box-shadow: 0 8px 30px -12px color-mix(in oklab, var(--accent, var(--color-astral-500)) 40%, transparent);
+  transform: translateY(-3px) scale(1.01);
+  border-color: color-mix(in oklab, var(--accent, var(--color-astral-500)) 65%, transparent);
+  box-shadow: 0 12px 40px -12px color-mix(in oklab, var(--accent, var(--color-astral-500)) 45%, transparent);
 }
+.card:hover::before { opacity: 1; }
 
 .rule { height: 1px; background: linear-gradient(90deg, var(--color-void-600), transparent); }
 
@@ -128,26 +138,28 @@ body {
   float: none;
   width: 100%;
   margin: 0 0 1.5rem;
-  background: var(--color-void-850);
+  background: color-mix(in oklab, var(--color-void-900) 80%, transparent);
+  backdrop-filter: blur(12px);
   border: 1px solid var(--color-void-700);
-  border-radius: var(--radius-card);
+  border-radius: 1rem;
   overflow: hidden;
   font-size: .85rem;
+  box-shadow: 0 8px 32px -8px rgba(0,0,0,0.4);
 }
 @media (min-width: 1024px) {
-  .wiki-body .portable-infobox { float: right; width: 21rem; margin: .25rem 0 1.25rem 1.75rem; }
+  .wiki-body .portable-infobox { float: right; width: 22rem; margin: .25rem 0 1.5rem 2rem; }
 }
 
 .wiki-body .pi-title,
 .wiki-body .pi-header {
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: #f4f4f5;
   text-align: center;
-  padding: .6rem .75rem;
+  padding: .75rem;
   margin: 0;
-  background: linear-gradient(180deg, color-mix(in oklab, var(--color-astral-500) 16%, transparent), transparent);
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-void-700) 40%, transparent), transparent);
   border-bottom: 1px solid var(--color-void-700);
 }
 .wiki-body .pi-header { font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--color-astral-400); }

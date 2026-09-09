@@ -17,7 +17,7 @@ the changes is not.
 ## 2. The wiki content — CC BY-SA 4.0
 
 Article text and structure come from the
-[HoYoverse Universe Index](https://hoyodex.miraheze.org), licensed
+[Genshin Impact Fandom Wiki](https://genshin-impact.fandom.com), licensed
 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 Our obligations, all of which the site currently meets:

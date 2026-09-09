@@ -10,7 +10,6 @@ export default defineConfig({
   adapter: cloudflare({ imageService: 'compile' }),
   integrations: [react(), sitemap()],
   vite: { plugins: [tailwind()] },
-  // Astro 7: src/fetch.ts is reserved for advanced routing. We don't use it.
   fetchFile: null,
   prefetch: { prefetchAll: true, defaultStrategy: 'viewport' },
 });

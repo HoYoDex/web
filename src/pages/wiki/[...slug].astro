@@ -1,59 +1,84 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getCollection, render } from 'astro:content';
-import { gameForCategories } from '../../lib/games';
+import { getCollection, getEntry } from 'astro:content';
+import { GAMES } from '../../lib/games';
+import { fetchLiveNavigation } from '../../lib/navParser';
+
+export const prerender = false;
 
 export async function getStaticPaths() {
   const pages = await getCollection('wiki');
-  return pages.map((page) => ({ params: { slug: page.id }, props: { page } }));
+  return pages.map((page) => ({ params: { slug: page.id } }));
 }
 
-const { page } = Astro.props;
-const { Content } = await render(page);
-const game = gameForCategories(page.data.categories, page.data.title);
-const toc = page.data.sections.filter((s) => s.level <= 3);
+const { slug } = Astro.params;
+const page = await getEntry('wiki', slug!);
+if (!page) return Astro.redirect('/404');
+
+const game = GAMES.find((g) => g.slug === page.data.game);
+const liveNav = game ? await fetchLiveNavigation(game.slug) : undefined;
+const endpoint = game ? `https://${game.slug}.fandom.com` : 'https://genshin-impact.fandom.com'; // fallback if not found in GAMES but shouldn't happen
+// Fandom handles tears-of-themis differently so we'd need WIKI_ENDPOINTS, let's just import it or extract from sourceUrl
+const url = new URL(page.data.sourceUrl);
+const origin = url.origin;
+
+import { MediaWikiClient, rewriteHtml } from '../../lib/mediawiki';
+const client = new MediaWikiClient({ endpoint: origin, userAgent: 'HoYoDexBot/0.1 (https://hoyodex.com; tech@hoyodex.com)' });
+const parsed = await client.parsePage(page.data.title);
+const html = rewriteHtml(parsed.html, origin, page.data.game);
+const toc = parsed.sections.filter((s: any) => s.level <= 3);
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
+const FEATURED_CATEGORIES = [
+  'Playable Characters',
+  'Characters',
+  'Weapons',
+  'Artifacts',
+  'Locations',
+  'Enemies',
+  'Quests'
+];
 ---
 
-<Base title={page.data.displayTitle} description={`${page.data.displayTitle} — HoYoDex`} sourceUrl={page.data.sourceUrl}>
-  <nav class="mb-4 text-sm text-zinc-500">
-    <a href="/" class="hover:text-astral-400">Home</a> <span class="px-1">/</span>
-    <a href="/wiki" class="hover:text-astral-400">Wiki</a>
-    {game && (<><span class="px-1">/</span><a href={`/games/${game.slug}`} class="hover:text-astral-400">{game.name}</a></>)}
-  </nav>
+<Base title={page.data.displayTitle} description={`${page.data.displayTitle} — HoYoDex`} sourceUrl={page.data.sourceUrl} wide={true} game={game} nav={liveNav}>
+  <div class="flex flex-col gap-8 xl:flex-row xl:items-start">
+    {/* MAIN CONTENT */}
+    <article class="min-w-0 flex-1 rounded-2xl border border-void-700 bg-void-900/40 p-6 backdrop-blur-sm sm:p-10 shadow-2xl shadow-void-950/50">
+      <h1 class="font-display text-4xl font-bold tracking-tight sm:text-5xl">{page.data.displayTitle}</h1>
+      <p class="mt-3 text-sm text-zinc-500">Last updated {page.data.updated.slice(0, 10)}</p>
+      
+      <div class="wiki-body mt-8" set:html={html}></div>
 
-  <div class="lg:flex lg:gap-10">
-    {toc.length > 2 && (
-      <aside class="mb-6 shrink-0 lg:order-2 lg:mb-0 lg:w-56">
-        <div class="lg:sticky lg:top-20">
-          <h2 class="mb-2 font-display text-xs font-semibold uppercase tracking-wider text-zinc-500">Contents</h2>
-          <ul class="space-y-1 border-l border-void-700 text-sm">
-            {toc.map((s) => (
+      {parsed.categories.length > 0 && (
+        <footer class="mt-12 rounded-xl border border-void-700 bg-void-850 p-6">
+          <h2 class="mb-3 text-xs font-semibold uppercase tracking-wider text-zinc-500">Categories</h2>
+          <ul class="flex flex-wrap gap-2">
+            {parsed.categories.map((c: any) => (
+              <li class="rounded-full border border-void-600 bg-void-900 px-3 py-1 text-xs font-medium text-zinc-400 shadow-sm transition-colors hover:border-void-500 hover:text-zinc-200">
+                <a href={`/search?q=${encodeURIComponent(c)}&game=${game?.slug}`}>{c}</a>
+              </li>
+            ))}
+          </ul>
+        </footer>
+      )}
+    </article>
+
+    {/* RIGHT SIDEBAR: Table of Contents */}
+    {toc.length > 0 && (
+      <aside class="hidden w-72 shrink-0 xl:block">
+        <div class="sticky top-24 rounded-xl border border-void-700 bg-void-850/50 p-5 backdrop-blur-md">
+          <h2 class="mb-3 font-display text-xs font-semibold uppercase tracking-wider text-zinc-500">Contents</h2>
+          <ul class="space-y-1.5 border-l border-void-700 text-sm">
+            {toc.map((s: any) => (
               <li>
                 <a href={`#${s.anchor}`}
-                   class="block border-l-2 border-transparent py-0.5 text-zinc-400 transition-colors hover:border-astral-400 hover:text-astral-400"
-                   style={`padding-left:${(s.level - 1) * 0.6 + 0.6}rem;margin-left:-1px`}>{s.line}</a>
+                   class="block border-l-2 border-transparent py-0.5 text-zinc-400 transition-colors hover:border-astral-400 hover:text-zinc-100"
+                   style={`padding-left:${(s.level - 1) * 0.7 + 0.7}rem;margin-left:-1px`}>{s.line}</a>
               </li>
             ))}
           </ul>
         </div>
       </aside>
     )}
-
-    <article class="min-w-0 flex-1 lg:order-1">
-      <h1 class="font-display text-3xl font-bold sm:text-4xl">{page.data.displayTitle}</h1>
-      <p class="mt-2 text-sm text-zinc-500">Last updated {page.data.updated.slice(0, 10)}</p>
-      <div class="wiki-body mt-6"><Content /></div>
-
-      {page.data.categories.length > 0 && (
-        <footer class="mt-10 border-t border-void-700 pt-5">
-          <h2 class="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">Categories</h2>
-          <ul class="flex flex-wrap gap-2">
-            {page.data.categories.map((c) => (
-              <li class="rounded-full border border-void-600 bg-void-800/60 px-3 py-1 text-xs text-zinc-400">{c}</li>
-            ))}
-          </ul>
-        </footer>
-      )}
-    </article>
   </div>
 </Base>

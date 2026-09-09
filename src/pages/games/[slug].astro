@@ -2,38 +2,83 @@
 import Base from '../../layouts/Base.astro';
 import PageCard from '../../components/PageCard.astro';
 import { getCollection } from 'astro:content';
-import { GAMES, gameForCategories } from '../../lib/games';
+import { GAMES } from '../../lib/games';
+import { fetchLiveNavigation } from '../../lib/navParser';
 
 export async function getStaticPaths() {
   const pages = await getCollection('wiki');
-  return GAMES.map((game) => ({
-    params: { slug: game.slug },
-    props: {
-      game,
-      pages: pages
-        .filter((p) => gameForCategories(p.data.categories, p.data.title)?.slug === game.slug)
-        .sort((a, b) => a.data.displayTitle.localeCompare(b.data.displayTitle)),
-    },
+  return Promise.all(GAMES.map(async (game) => {
+    const liveNav = await fetchLiveNavigation(game.slug);
+    return {
+      params: { slug: game.slug },
+      props: {
+        game,
+        liveNav,
+        pages: pages
+          .filter((p) => p.data.game === game.slug)
+          .sort((a, b) => a.data.displayTitle.localeCompare(b.data.displayTitle)),
+      },
+    };
   }));
 }
 
-const { game, pages } = Astro.props;
----
-<Base title={game.name} description={game.blurb}>
-  <h1 class="font-display text-3xl font-bold sm:text-4xl" style={`color:${game.accent}`}>{game.name}</h1>
-  <p class="mt-2 max-w-2xl text-zinc-400">{game.blurb}</p>
-  <p class="mt-1 text-sm text-zinc-500">Released {game.released} · {pages.length} indexed pages</p>
+const { game, liveNav, pages } = Astro.props;
 
+// Hub categories to feature on the main game page
+const FEATURED_CATEGORIES = [
+  'Playable Characters',
+  'Characters',
+  'Weapons',
+  'Artifacts',
+  'Locations',
+  'Enemies',
+  'Quests'
+];
+
+const categoryGroups = new Map<string, typeof pages>();
+
+for (const p of pages) {
+  for (const cat of p.data.categories) {
+    if (FEATURED_CATEGORIES.includes(cat)) {
+      if (!categoryGroups.has(cat)) categoryGroups.set(cat, []);
+      categoryGroups.get(cat)!.push(p);
+    }
+  }
+}
+
+// Fallback if no featured categories exist (like for smaller wikis)
+const showFallback = categoryGroups.size === 0 && pages.length > 0;
+---
+<Base title={game.name} description={game.blurb} wide={true} game={game} nav={liveNav}>
   {pages.length === 0 ? (
-    <p class="mt-10 rounded-lg border border-dashed border-void-700 p-8 text-center text-zinc-500">
+    <p class="mt-10 rounded-xl border border-dashed border-void-700 p-12 text-center text-zinc-500">
       No pages indexed for this game yet.
-      <a href="https://hoyodex.miraheze.org" class="text-astral-400 underline" rel="noopener">Help write them on the wiki.</a>
+      <br/><a href={`https://${game.slug}.fandom.com`} class="mt-2 inline-block font-medium hover:underline" style={`color:${game.accent}`} rel="noopener">Help write them on the wiki.</a>
     </p>
-  ) : (
+  ) : showFallback ? (
     <div class="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {pages.map((p) => (
+      {pages.slice(0, 50).map((p) => (
         <PageCard href={`/wiki/${p.id}`} title={p.data.displayTitle} meta={p.data.categories.slice(0, 3).join(' · ')} accent={game.accent} />
       ))}
+    </div>
+  ) : (
+    <div class="space-y-16 mt-4">
+      {FEATURED_CATEGORIES.filter(c => categoryGroups.has(c)).map(cat => {
+        const groupPages = categoryGroups.get(cat)!;
+        return (
+          <section>
+            <div class="mb-4 flex items-end justify-between border-b border-void-700/50 pb-2">
+              <h2 class="font-display text-2xl font-bold text-zinc-100">{cat}</h2>
+              <a href={`/search?q=${encodeURIComponent(cat)}&game=${game.slug}`} class="text-sm transition-colors hover:text-zinc-300" style={`color:${game.accent}`}>View all {groupPages.length} →</a>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {groupPages.slice(0, 8).map((p) => (
+                <PageCard href={`/wiki/${p.id}`} title={p.data.displayTitle} meta={p.data.categories.filter(c => c !== cat).slice(0, 2).join(' · ')} accent={game.accent} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
     </div>
   )}
 </Base>

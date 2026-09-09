@@ -92,7 +92,7 @@ export default function Search({ games }: { games: { slug: string; name: string;
       {entries !== null && results.length === 0 && (
         <p className="mt-6 text-center text-zinc-500">
           Nothing matched “{q}”. Try a broader term, or
-          <a className="ml-1 text-astral-400 underline" href="https://hoyodex.miraheze.org" rel="noopener">write the page on the wiki</a>.
+          <a className="ml-1 text-astral-400 underline" href="https://genshin-impact.fandom.com" rel="noopener">write the page on the wiki</a>.
         </p>
       )}
     </div>

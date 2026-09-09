@@ -3,7 +3,7 @@
 ## Something on the site is wrong
 
 **Wrong facts, missing pages, typos in article text** →
-[edit the wiki](https://hoyodex.miraheze.org). Article content is not in this
+[edit the wiki](https://genshin-impact.fandom.com). Article content is not in this
 repository; the site renders it. Your edit appears at the next build.
 
 **Broken layout, a page that will not load, a bug** →

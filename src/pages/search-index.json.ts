@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
-import { gameForCategories } from '../lib/games';
+
 
 /**
  * Flat search index, built at compile time and fetched by the search island.
@@ -13,7 +13,7 @@ export const GET: APIRoute = async () => {
   const index = pages.map((p) => ({
     i: p.id,
     t: p.data.displayTitle,
-    g: gameForCategories(p.data.categories, p.data.title)?.slug ?? '',
+    g: p.data.game,
     c: p.data.categories.slice(0, 6),
   }));
 

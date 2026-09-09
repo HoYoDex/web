@@ -6,7 +6,7 @@ right one saves everybody time.
 ## Content vs. code
 
 **Wrong facts, missing pages, typos in article text** belong on the
-[wiki](https://hoyodex.miraheze.org), not here. This repository only *renders*
+[wiki](https://genshin-impact.fandom.com), not here. This repository only *renders*
 that content — a fix there flows into the next build automatically. Opening a PR
 here to change article text will not work; there is no article text in this repo.
 

@@ -21,6 +21,7 @@ export interface MwPageStub {
   /** Latest revision id — our change digest. */
   revid: number;
   touched: string;
+  categories?: string[];
 }
 
 export interface MwParsedPage {
@@ -61,7 +62,7 @@ export class MediaWikiClient {
   }
 
   async #get(params: Record<string, string | number>): Promise<any> {
-    const url = new URL(`${this.#endpoint}/w/api.php`);
+    const url = new URL(`${this.#endpoint}/api.php`);
     for (const [k, v] of Object.entries({
       format: 'json',
       formatversion: '2',
@@ -117,15 +118,41 @@ export class MediaWikiClient {
           ...cont,
         });
 
-        for (const p of json.query?.pages ?? []) {
+        for (const p of Object.values(json.query?.pages ?? {}) as any[]) {
           const rev = p.revisions?.[0];
           if (!rev) continue;
-          out.push({ pageid: p.pageid, title: p.title, revid: rev.revid, touched: rev.timestamp });
+          out.push({
+            pageid: p.pageid,
+            title: p.title,
+            revid: rev.revid,
+            touched: rev.timestamp,
+            categories: [],
+          });
         }
         cont = json.continue ?? {};
       } while (Object.keys(cont).length);
     }
+    return out;
+  }
 
+  async fetchCategoryMembers(categoryTitle: string): Promise<number[]> {
+    const out: number[] = [];
+    let cont: Record<string, string> = {};
+    do {
+      const json = await this.#get({
+        action: 'query',
+        list: 'categorymembers',
+        cmtitle: `Category:${categoryTitle}`,
+        cmnamespace: 0,
+        cmlimit: 'max',
+        ...cont,
+      });
+
+      for (const p of json.query?.categorymembers ?? []) {
+        out.push(p.pageid);
+      }
+      cont = json.continue ?? {};
+    } while (Object.keys(cont).length);
     return out;
   }
 
@@ -175,7 +202,7 @@ export function toSlug(title: string): string {
  * Rewrite parser HTML so it works on our origin:
  * internal wiki links point at our routes, everything else is made absolute.
  */
-export function rewriteHtml(html: string, endpoint: string): string {
+export function rewriteHtml(html: string, endpoint: string, prefix: string): string {
   return (
     html
       // 1. Protocol-relative asset URLs (static.wikitide.net, etc.) -> https.
@@ -190,7 +217,7 @@ export function rewriteHtml(html: string, endpoint: string): string {
         new RegExp(`href="${endpoint}/wiki/([^"#?:]+)(#[^"]*)?"`, 'g'),
         (_m, page: string, hash = '') => {
           const title = decodeURIComponent(page).replace(/_/g, ' ');
-          return `href="/wiki/${toSlug(title)}${hash}"`;
+          return `href="/wiki/${prefix}/${toSlug(title)}${hash}"`;
         }
       )
       // 4. Wiki content is untrusted-ish and must not break our page.
