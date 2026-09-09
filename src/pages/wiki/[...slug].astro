@@ -77,15 +77,26 @@ if (cached) {
   }
 } else {
   let title = page?.data.title;
-  if (!title) {
-    // Collection miss: `toSlug` is lossy, so we can't reconstruct the exact
-    // title from the URL slug — resolve it via a cheap, Fandom-cached search
-    // instead, then render exactly like a known page.
-    const guess = slug!.slice(gameSlug.length + 1).replace(/-/g, ' ');
-    title = (await client.searchTitle(guess)) ?? undefined;
-    if (!title) return Astro.redirect('/404');
+  try {
+    if (!title) {
+      // Collection miss: `toSlug` is lossy, so we can't reconstruct the exact
+      // title from the URL slug — resolve it via a cheap, Fandom-cached search
+      // instead, then render exactly like a known page.
+      const guess = slug!.slice(gameSlug.length + 1).replace(/-/g, ' ');
+      title = (await client.searchTitle(guess)) ?? undefined;
+      if (!title) return Astro.redirect('/404');
+    }
+    ({ displayTitle, html, categories, sections: toc, sourceUrl, updated } = await fetchAndCache(title));
+  } catch (err) {
+    // A true cache miss with no fallback data means a live Fandom failure
+    // (rate limit, outage, network block on this runtime's egress) has
+    // nothing to degrade to — that's a real 503, not an unhandled crash.
+    console.error(`[wiki/${slug}] Live fetch failed with no cached fallback`, err);
+    return new Response('This page is temporarily unavailable — Fandom is not responding right now. Please try again shortly.', {
+      status: 503,
+      headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'no-store' },
+    });
   }
-  ({ displayTitle, html, categories, sections: toc, sourceUrl, updated } = await fetchAndCache(title));
 }
 
 // Still worth a short edge-cache layer in front of the durable cache — a
