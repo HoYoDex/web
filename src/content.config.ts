@@ -13,7 +13,7 @@ const WIKI_ENDPOINTS: Record<string, string> = {
 const wiki = defineCollection({
   loader: mediaWikiLoader({
     endpoints: WIKI_ENDPOINTS,
-    userAgent: 'HoYoDexBot/0.1 (https://hoyodex.com; tech@hoyodex.com)',
+    userAgent: 'HoYoDexBot/0.1 (https://www.hoyodex.com; tech@hoyodex.com)',
     namespaces: [0],
     concurrency: 6,
     // Set HOYODEX_PAGE_LIMIT=50 for a fast local build.

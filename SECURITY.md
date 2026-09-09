@@ -14,7 +14,7 @@ it. We aim to acknowledge reports within 72 hours.
 
 In scope:
 
-- `hoyodex.com` and the code in this repository
+- `www.hoyodex.com` and the code in this repository
 - The build and deployment pipeline
 
 Out of scope:

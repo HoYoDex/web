@@ -7,9 +7,9 @@
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-38bdf8.svg?style=flat-square)](LICENSE)
 [![Content: CC BY-SA 4.0](https://img.shields.io/badge/Content-CC_BY--SA_4.0-a78bfa.svg?style=flat-square)](https://creativecommons.org/licenses/by-sa/4.0/)
 [![Astro](https://img.shields.io/badge/Astro-7-fbbf24.svg?style=flat-square)](https://astro.build)
-[![Deploy](https://img.shields.io/badge/Cloudflare-Workers-f97316.svg?style=flat-square)](https://workers.cloudflare.com)
+[![Deploy](https://img.shields.io/badge/Vercel-000000.svg?style=flat-square&logo=vercel)](https://vercel.com)
 
-[hoyodex.com](https://hoyodex.com) · [Wiki](https://genshin-impact.fandom.com) · [Contributing](CONTRIBUTING.md) · [Deploying](CLOUDFLARE.md)
+[www.hoyodex.com](https://www.hoyodex.com) · [Wiki](https://genshin-impact.fandom.com) · [Contributing](CONTRIBUTING.md) · [Deploying](VERCEL.md)
 
 </div>
 
@@ -32,7 +32,7 @@ The site is a static build over content pulled from the
 Action API.
 
 ```
-MediaWiki API  ──▶  Content Layer loader  ──▶  Astro static build  ──▶  Cloudflare
+MediaWiki API  ──▶  Content Layer loader  ──▶  Astro build (SSR + static)  ──▶  Vercel
  (2,000+ pages)      (incremental cache)        (2,085 routes)          (Workers)
 ```
 
@@ -91,12 +91,12 @@ src/
 └── styles/global.css      Tailwind theme + rendered-wiki-HTML styling
 
 public/                    Static assets, including the served brand marks
-wrangler.jsonc             Cloudflare Workers config
+vercel.json                Vercel headers + redirects config
 ```
 
 ## Deploying
 
-Cloudflare builds this repo directly on push to `main` — see [CLOUDFLARE.md](CLOUDFLARE.md)
+Vercel builds this repo directly on push to `main` — see [VERCEL.md](VERCEL.md)
 for build settings and a note on keeping content fresh.
 
 ## Documentation
@@ -106,7 +106,7 @@ for build settings and a note on keeping content fresh.
 | [ARCHITECTURE.md](ARCHITECTURE.md) | How the ingest pipeline and rendering work, and why |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Setup, conventions, and what belongs here vs. the wiki |
 | [ATTRIBUTION.md](ATTRIBUTION.md) | The three licences that apply and our obligations |
-| [CLOUDFLARE.md](CLOUDFLARE.md) | Deployment settings and content freshness |
+| [VERCEL.md](VERCEL.md) | Deployment settings and content freshness |
 | [GOVERNANCE.md](GOVERNANCE.md) | How decisions get made |
 | [SUPPORT.md](SUPPORT.md) | Where to ask for help |
 | [SECURITY.md](SECURITY.md) | Reporting vulnerabilities |

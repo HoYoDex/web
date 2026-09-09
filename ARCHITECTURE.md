@@ -9,7 +9,7 @@ that change slowly. There is no user-generated content at request time, no
 personalisation, and no reason for a page to be assembled per visitor.
 
 That makes it a static site. Every route is rendered at build time and served
-from Cloudflare's edge as a file. The only JavaScript that reaches a reader is
+from Vercel's edge as a file. The only JavaScript that reaches a reader is
 on `/search`.
 
 This shapes every decision below. When you propose a change, the question to ask
@@ -27,7 +27,7 @@ is "does this force work to happen per request that could happen once at build?"
   src/loaders/mediawiki.ts ──── .astro/  (content store, incremental)
            │
            ▼
-  Astro build ──▶ 2,085 static routes ──▶ Cloudflare Workers
+  Astro build ──▶ 2,085 static routes ──▶ Vercel Workers
 ```
 
 ### ① The API client — `src/lib/mediawiki.ts`
@@ -103,7 +103,7 @@ overridden.
 
 ## Deployment
 
-Cloudflare builds from git on push. See [CLOUDFLARE.md](CLOUDFLARE.md), including
+Vercel builds from git on push. See [VERCEL.md](VERCEL.md), including
 the caveat that wiki edits alone do not trigger a rebuild.
 
 ## Deliberate non-goals

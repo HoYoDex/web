@@ -12,8 +12,8 @@ are the best entry point.
 - **Attribution coverage.** ~81% of pages resolve to a game via universe codes.
   The remainder are voice actors, staff and meta pages — most correctly have no
   game, but some are misses worth recovering. See `src/lib/games.ts`.
-- **Content freshness.** Wiki edits do not trigger a rebuild, because Cloudflare
-  builds on git push. Needs a scheduled deploy hook — see [CLOUDFLARE.md](CLOUDFLARE.md).
+- **Content freshness.** Wiki edits do not trigger a rebuild, because Vercel
+  builds on git push. SSR wiki pages fetch on request, so this only affects fully static routes — see [VERCEL.md](VERCEL.md).
 - **Upstream HTML edge cases.** `.wiki-body` styles markup we do not control.
   Tabbers, some galleries and a few templates still render inertly or awkwardly.
 
@@ -33,7 +33,7 @@ are the best entry point.
 ## Later
 
 - **Community layer.** Comments, corrections, and page watchlists. This is the
-  first feature that needs state, and would bring in Cloudflare D1. The
+  first feature that needs state, and would bring in Vercel D1. The
   encyclopedia itself stays static regardless.
 - **Offline support** via a service worker.
 

@@ -23,7 +23,7 @@ const url = new URL(page.data.sourceUrl);
 const origin = url.origin;
 
 import { MediaWikiClient, rewriteHtml } from '../../lib/mediawiki';
-const client = new MediaWikiClient({ endpoint: origin, userAgent: 'HoYoDexBot/0.1 (https://hoyodex.com; tech@hoyodex.com)' });
+const client = new MediaWikiClient({ endpoint: origin, userAgent: 'HoYoDexBot/0.1 (https://www.hoyodex.com; tech@hoyodex.com)' });
 const parsed = await client.parsePage(page.data.title);
 const html = rewriteHtml(parsed.html, origin, page.data.game);
 const toc = parsed.sections.filter((s: any) => s.level <= 3);

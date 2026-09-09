@@ -22,7 +22,7 @@ Three, unavoidably:
 
 | Who | Why | What they can see |
 |---|---|---|
-| **Cloudflare** | Hosts and serves the site | Standard request data — IP, user agent, requested URL — subject to [Cloudflare's privacy policy](https://www.cloudflare.com/privacypolicy/) |
+| **Vercel** | Hosts and serves the site | Standard request data — IP, user agent, requested URL — subject to [Vercel's privacy policy](https://vercel.com/legal/privacy-policy) |
 | **Fandom CDN** | Serves article images | Your IP and referring page when an image loads. Images are hotlinked rather than rehosted |
 | **Google Fonts** | Serves the two typefaces | Your IP when the font files load |
 
