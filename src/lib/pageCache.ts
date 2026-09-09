@@ -71,12 +71,32 @@ export function isPageCacheConfigured(): boolean {
   return getClient() !== null;
 }
 
+const CACHE_TIMEOUT_MS = 2500;
+
+/**
+ * A misconfigured REST URL/token doesn't necessarily fail fast — it can hang
+ * until some underlying default timeout, which may be longer than the
+ * function's own execution budget. If the platform kills the function first,
+ * no try/catch here ever runs. Race every Redis call against a short local
+ * timeout so a bad cache config costs a couple of seconds, not the whole
+ * request — this is the actual failure mode that mattered in practice, not
+ * just a defensive nicety.
+ */
+function withTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`pageCache: ${label} timed out after ${CACHE_TIMEOUT_MS}ms`)), CACHE_TIMEOUT_MS)
+    ),
+  ]);
+}
+
 export async function getCachedPage(id: string): Promise<{ page: CachedPage; fresh: boolean } | null> {
   const redis = getClient();
   if (!redis) return null;
 
   try {
-    const page = await redis.get<CachedPage>(`wiki-page:${id}`);
+    const page = await withTimeout(redis.get<CachedPage>(`wiki-page:${id}`), 'getCachedPage');
     if (!page) return null;
     return { page, fresh: Date.now() - page.cachedAt < FRESH_MS };
   } catch (err) {
@@ -93,7 +113,10 @@ export async function setCachedPage(id: string, page: Omit<CachedPage, 'cachedAt
   if (!redis) return;
 
   try {
-    await redis.set(`wiki-page:${id}`, { ...page, cachedAt: Date.now() }, { ex: STALE_TTL_SECONDS });
+    await withTimeout(
+      redis.set(`wiki-page:${id}`, { ...page, cachedAt: Date.now() }, { ex: STALE_TTL_SECONDS }),
+      'setCachedPage'
+    );
   } catch (err) {
     console.error('pageCache: setCachedPage failed, page just won\'t be cached this time', err);
   }
@@ -107,7 +130,10 @@ export async function getCachedNav(gameSlug: string) {
   if (!redis) return null;
 
   try {
-    const entry = await redis.get<{ nav: unknown; cachedAt: number }>(`wiki-nav:${gameSlug}`);
+    const entry = await withTimeout(
+      redis.get<{ nav: unknown; cachedAt: number }>(`wiki-nav:${gameSlug}`),
+      'getCachedNav'
+    );
     if (!entry) return null;
     return { nav: entry.nav, fresh: Date.now() - entry.cachedAt < NAV_FRESH_MS };
   } catch (err) {
@@ -121,7 +147,7 @@ export async function setCachedNav(gameSlug: string, nav: unknown): Promise<void
   if (!redis) return;
 
   try {
-    await redis.set(`wiki-nav:${gameSlug}`, { nav, cachedAt: Date.now() }, { ex: NAV_TTL_SECONDS });
+    await withTimeout(redis.set(`wiki-nav:${gameSlug}`, { nav, cachedAt: Date.now() }, { ex: NAV_TTL_SECONDS }), 'setCachedNav');
   } catch (err) {
     console.error('pageCache: setCachedNav failed, nav just won\'t be cached this time', err);
   }
