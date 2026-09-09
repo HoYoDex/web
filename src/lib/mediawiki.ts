@@ -229,6 +229,19 @@ export function toSlug(title: string): string {
 export function rewriteHtml(html: string, endpoint: string, prefix: string): string {
   return (
     html
+      // 0. Fandom ships its own JS lazyloader: real image lives in data-src/
+      //    data-srcset and `src` is just a 1x1 placeholder gif. We don't load
+      //    that script (we use native loading="lazy" instead), so without this
+      //    those images would never resolve — swap the real URLs back in first.
+      .replace(/<img\b([^>]*)>/g, (tag, attrs: string) => {
+        const dataSrc = /\bdata-src="([^"]*)"/.exec(attrs)?.[1];
+        const dataSrcset = /\bdata-srcset="([^"]*)"/.exec(attrs)?.[1];
+        if (!dataSrc && !dataSrcset) return tag;
+        let out = attrs;
+        if (dataSrc) out = out.replace(/\bsrc="[^"]*"/, `src="${dataSrc}"`);
+        if (dataSrcset) out = out.replace(/\bsrcset="[^"]*"/, `srcset="${dataSrcset}"`);
+        return `<img${out}>`;
+      })
       // 1. Protocol-relative asset URLs (static.wikitide.net, etc.) -> https.
       .replace(/(src|srcset|href)="\/\//g, '$1="https://')
       // 2. Absolutise every root-relative URL to the upstream wiki. This must run
