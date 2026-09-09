@@ -9,7 +9,7 @@ import { setCachedPage } from '../lib/pageCache';
  * and forces a refetch — without it, a transform fix would silently only apply
  * to pages that happened to be edited upstream since the last build.
  */
-const TRANSFORM_VERSION = 3;
+const TRANSFORM_VERSION = 4;
 
 export interface MediaWikiLoaderOptions {
   endpoints: Record<string, string>;
