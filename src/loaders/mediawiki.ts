@@ -112,6 +112,21 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
           }
           logger.info(`[${gameSlug}] Updating ${stale.length} page stub(s) in store…`);
 
+          // Bounds on the pre-warm pass specifically, so it can never blow up
+          // build time the way an unbounded per-page retry loop can: a
+          // build that took ~2-3 minutes before this pass existed took over
+          // 20 and still hadn't finished the first time this ran, almost
+          // certainly retry backoff compounding across many pages in one go.
+          // Cap how many pages get warmed per wiki per run (coverage still
+          // grows every subsequent build), and stop entirely for this wiki
+          // after a few consecutive failures — that's a signal build egress
+          // itself is having trouble reaching this wiki right now, and
+          // burning the rest of the budget retrying into that isn't useful.
+          const PREWARM_LIMIT = 40;
+          const MAX_CONSECUTIVE_FAILURES = 3;
+          let prewarmed = 0;
+          let consecutiveFailures = 0;
+
           for (const page of stale) {
             const id = `${gameSlug}/${toSlug(page.title)}`;
             const sourceUrl = `${endpoint}/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}`;
@@ -147,20 +162,31 @@ export function mediaWikiLoader(options: MediaWikiLoaderOptions): Loader {
             // warming here makes known pages resilient to that independent
             // of whether live traffic can reach Fandom at all right now.
             // One page's parse failure shouldn't lose the rest of the batch.
-            try {
-              const parsed = await client.parsePage(page.title);
-              await setCachedPage(id, {
-                displayTitle: parsed.displaytitle,
-                html: rewriteHtml(parsed.html, endpoint, gameSlug),
-                categories: parsed.categories,
-                sections: parsed.sections.filter((s) => s.level <= 3),
-                sourceUrl,
-                updated: page.touched,
-              });
-            } catch (err) {
-              logger.error(`[${gameSlug}] Failed to pre-warm cache for "${page.title}", it'll fetch live on first visit instead: ${err}`);
+            if (prewarmed >= PREWARM_LIMIT) {
+              // Leave it uncached this run; next build picks up more.
+            } else if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+              // Already established build egress can't reach this wiki right
+              // now — don't pay retry backoff on every remaining page too.
+            } else {
+              try {
+                const parsed = await client.parsePage(page.title);
+                await setCachedPage(id, {
+                  displayTitle: parsed.displaytitle,
+                  html: rewriteHtml(parsed.html, endpoint, gameSlug),
+                  categories: parsed.categories,
+                  sections: parsed.sections.filter((s) => s.level <= 3),
+                  sourceUrl,
+                  updated: page.touched,
+                });
+                prewarmed++;
+                consecutiveFailures = 0;
+              } catch (err) {
+                consecutiveFailures++;
+                logger.error(`[${gameSlug}] Failed to pre-warm cache for "${page.title}", it'll fetch live on first visit instead: ${err}`);
+              }
             }
           }
+          logger.info(`[${gameSlug}] Pre-warmed ${prewarmed} of ${stale.length} changed page(s) into the durable cache.`);
         } catch (err) {
           // A transient failure on one wiki (network blip, Fandom outage)
           // must not fail the whole build for the other five — same
